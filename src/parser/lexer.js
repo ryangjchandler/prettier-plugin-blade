@@ -114,7 +114,7 @@ export class Lexer {
             this.read();
         }
 
-        return new Token(TokenType.T_DIRECTIVE, match, this.line)
+        return new Token(TokenType.T_DIRECTIVE, match.trim(), this.line)
     }
 
     literal() {

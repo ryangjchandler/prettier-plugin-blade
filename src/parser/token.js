@@ -16,4 +16,8 @@ export class Token {
         this.raw = raw
         this.line = line
     }
+
+    static eof() {
+        return new Token(TokenType.T_EOF, '', 0)
+    }
 }

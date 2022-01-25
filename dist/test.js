@@ -12,6 +12,9 @@
       this.raw = raw;
       this.line = line;
     }
+    static eof() {
+      return new Token(TokenType.T_EOF, "", 0);
+    }
   };
 
   // src/parser/lexer.js
@@ -99,7 +102,7 @@
         }
         this.read();
       }
-      return new Token(TokenType.T_DIRECTIVE, match, this.line);
+      return new Token(TokenType.T_DIRECTIVE, match.trim(), this.line);
     }
     literal() {
       if (this.buffer.length > 0) {
@@ -120,13 +123,97 @@
     }
   };
 
+  // src/parser/nodes/index.js
+  var EchoNode = class {
+    constructor(content, code) {
+      this.content = content;
+      this.code = code;
+    }
+  };
+  var DirectiveNode = class {
+    constructor(content, directive, code, line) {
+      this.content = content;
+      this.directive = directive;
+      this.code = code;
+      this.line = line;
+    }
+  };
+  var LiteralNode = class {
+    constructor(content) {
+      this.content = content;
+    }
+  };
+
+  // src/parser/parser.js
+  var Parser = class {
+    constructor(tokens) {
+      this.tokens = tokens;
+      this.tokens.push(Token.eof());
+      this.nodes = [];
+      this.current = Token.eof();
+      this.next = Token.eof();
+      this.i = -1;
+    }
+    parse() {
+      this.read();
+      this.read();
+      while (this.current.type !== TokenType.T_EOF) {
+        this.nodes.push(this.node());
+      }
+      return this.nodes;
+    }
+    node() {
+      if (this.current.type === TokenType.T_ECHO) {
+        return this.echo();
+      } else if (this.current.type === TokenType.T_DIRECTIVE) {
+        return this.directive();
+      } else {
+        const node = new LiteralNode(this.current.raw);
+        this.read();
+        return node;
+      }
+    }
+    echo() {
+      const node = new EchoNode(this.current.raw, this.current.raw.substring(2, this.current.raw.length - 2).trim());
+      this.read();
+      return node;
+    }
+    directive() {
+      let directiveName = this.current.raw.substring(this.current.raw.indexOf("@") + 1);
+      if (directiveName.includes("(")) {
+        directiveName = directiveName.substring(directiveName.indexOf("(") + 1);
+      }
+      let inner = this.current.raw.replace("@" + directiveName, "");
+      if (inner.startsWith("(")) {
+        inner = inner.substring(1);
+      }
+      if (inner.endsWith(")")) {
+        inner = inner.substring(0, inner.length - 1);
+      }
+      const directive = new DirectiveNode(this.current.raw, directiveName, inner);
+      this.read();
+      return directive;
+    }
+    read() {
+      this.i += 1;
+      this.current = this.next;
+      this.next = this.i >= this.tokens.length ? Token.eof() : this.tokens[this.i];
+    }
+  };
+
   // test/index.js
-  console.log("running ");
-  console.warn("Extracting tokens from:\n {{ $test }}");
+  console.warn("Extracting tokens and ast from:\n {{ $test }}");
   var l = new Lexer("{{ $test }}");
-  console.log(l.all());
+  var lt = l.all();
+  console.log(lt);
   console.log();
-  console.warn("Extracting tokens from:\n @php @endphp");
+  var pl = new Parser(lt);
+  console.log(pl.parse());
+  console.warn("Extracting tokens & ast from:\n @php @endphp");
   var j = new Lexer("@php @endphp");
-  console.log(j.all());
+  var jt = j.all();
+  console.log(jt);
+  console.log();
+  var pj = new Parser(jt);
+  console.log(pj.parse());
 })();
