@@ -4,6 +4,7 @@
         "esbuild": "^0.14.14"
     },
     "scripts": {
+        "build": "esbuild ./src/index.js --bundle --outfile=./dist/plugin.js",
         "test": "esbuild ./test/index.js --bundle --outfile=./dist/test.js && node ./dist/test.js"
     }
 }
