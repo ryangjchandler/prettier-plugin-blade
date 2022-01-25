@@ -1,0 +1,9 @@
+{
+    "name": "@ryangjchandler/prettier-plugin-blade",
+    "devDependencies": {
+        "esbuild": "^0.14.14"
+    },
+    "scripts": {
+        "test": "esbuild ./test/index.js --bundle --outfile=./dist/test.js && node ./dist/test.js"
+    }
+}
