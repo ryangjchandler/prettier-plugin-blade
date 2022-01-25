@@ -11,9 +11,15 @@ console.log()
 const pl = new Parser(lt)
 console.log(pl.parse())
 
-console.warn('Extracting tokens & ast from:\n @php @endphp');
+const js = `@php
+    $p = 1;
+@endphp
 
-const j = new Lexer('@php @endphp')
+Hello, my name is {{ $foo }}!`
+
+console.warn('Extracting tokens & ast from:\n' + js);
+
+const j = new Lexer(js)
 const jt = j.all()
 console.log(jt)
 console.log()

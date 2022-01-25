@@ -143,8 +143,51 @@
       this.content = content;
     }
   };
+  var DirectivePairNode = class {
+    constructor(open, close, children, line) {
+      this.open = open;
+      this.close = close;
+      this.children = children;
+    }
+  };
 
   // src/parser/parser.js
+  var STATIC_BLOCK_DIRECTIVES = [
+    "if",
+    "for",
+    "foreach",
+    "forelse",
+    "unless",
+    "while",
+    "isset",
+    "empty",
+    "auth",
+    "guest",
+    "production",
+    "env",
+    "hasSection",
+    "sectionMissing",
+    "switch",
+    "once",
+    "verbatim",
+    "error",
+    "push",
+    "prepend"
+  ];
+  var isBlockDirective = (directive) => {
+    if (STATIC_BLOCK_DIRECTIVES.includes(directive.directive)) {
+      return true;
+    }
+    if (directive.directive === "php" && !directive.code) {
+      return true;
+    }
+    return false;
+  };
+  var directiveCanBeClosedBy = (open, close) => {
+    return close.directive === "end" + open.directive;
+  };
+  var isBlockClosingDirective = (directive) => directive.directive.startsWith("end");
+  var guessClosingBlockDirective = (directive) => "end".directive.directive;
   var Parser = class {
     constructor(tokens) {
       this.tokens = tokens;
@@ -190,9 +233,28 @@
       if (inner.endsWith(")")) {
         inner = inner.substring(0, inner.length - 1);
       }
-      const directive = new DirectiveNode(this.current.raw, directiveName, inner);
+      const directive = new DirectiveNode(this.current.raw, directiveName, inner, this.current.line);
       this.read();
-      return directive;
+      if (!isBlockDirective(directive)) {
+        return directive;
+      }
+      let children = [];
+      let close = null;
+      while (this.current.type !== TokenType.T_EOF) {
+        const child = this.node();
+        if (child instanceof DirectiveNode && directiveCanBeClosedBy(directive, child)) {
+          close = child;
+          break;
+        }
+        if (child instanceof DirectiveNode && isBlockClosingDirective(child)) {
+          throw `Unexpected directive ${child.directive} on line ${child.line}, expected ${guessClosingBlockDirective(directive)}`;
+        }
+        children.push(child);
+      }
+      if (close === null) {
+        throw `Could not find "@end..." directive for "@${directive.directive}" defined on line ${directive.line}.`;
+      }
+      return new DirectivePairNode(directive, close, children);
     }
     read() {
       this.i += 1;
@@ -209,8 +271,13 @@
   console.log();
   var pl = new Parser(lt);
   console.log(pl.parse());
-  console.warn("Extracting tokens & ast from:\n @php @endphp");
-  var j = new Lexer("@php @endphp");
+  var js = `@php
+    $p = 1;
+@endphp
+
+Hello, my name is {{ $foo }}!`;
+  console.warn("Extracting tokens & ast from:\n" + js);
+  var j = new Lexer(js);
   var jt = j.all();
   console.log(jt);
   console.log();

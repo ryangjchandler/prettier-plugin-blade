@@ -1,6 +1,34 @@
 import { TokenType, Token } from './token'
 import * as Nodes from './nodes'
 
+const STATIC_BLOCK_DIRECTIVES = [
+    'if', 'for', 'foreach', 'forelse', 'unless',
+    'while', 'isset', 'empty', 'auth', 'guest',
+    'production', 'env', 'hasSection', 'sectionMissing',
+    'switch', 'once', 'verbatim', 'error', 'push',
+    'prepend',
+];
+
+const isBlockDirective = (directive) => {
+    if (STATIC_BLOCK_DIRECTIVES.includes(directive.directive)) {
+        return true
+    }
+
+    if (directive.directive === 'php' && ! directive.code) {
+        return true
+    }
+
+    // Support for custom directives?
+    return false
+}
+
+const directiveCanBeClosedBy = (open, close) => {
+    return close.directive === ('end' + open.directive)
+}
+
+const isBlockClosingDirective = (directive) => directive.directive.startsWith('end')
+const guessClosingBlockDirective = (directive) => 'end' . directive.directive
+
 export class Parser {
     constructor(tokens) {
         this.tokens = tokens
@@ -59,11 +87,37 @@ export class Parser {
             inner = inner.substring(0, inner.length - 1)
         }
 
-        const directive = new Nodes.DirectiveNode(this.current.raw, directiveName, inner)
+        const directive = new Nodes.DirectiveNode(this.current.raw, directiveName, inner, this.current.line)
 
         this.read()
 
-        return directive
+        if (! isBlockDirective(directive)) {
+            return directive
+        }
+
+        let children = []
+        let close = null
+
+        while (this.current.type !== TokenType.T_EOF) {
+            const child = this.node()
+            
+            if (child instanceof Nodes.DirectiveNode && directiveCanBeClosedBy(directive, child)) {
+                close = child
+                break
+            }
+
+            if (child instanceof Nodes.DirectiveNode && isBlockClosingDirective(child)) {
+                throw `Unexpected directive ${child.directive} on line ${child.line}, expected ${guessClosingBlockDirective(directive)}`;
+            }
+
+            children.push(child)
+        }
+
+        if (close === null) {
+            throw `Could not find "@end..." directive for "@${directive.directive}" defined on line ${directive.line}.`
+        }
+
+        return new Nodes.DirectivePairNode(directive, close, children)
     }
 
     read() {

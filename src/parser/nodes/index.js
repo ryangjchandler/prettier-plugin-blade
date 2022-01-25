@@ -20,4 +20,12 @@ class LiteralNode {
     }
 }
 
-export { EchoNode, DirectiveNode, LiteralNode }
+class DirectivePairNode {
+    constructor(open, close, children, line) {
+        this.open = open
+        this.close = close
+        this.children = children
+    }
+}
+
+export { EchoNode, DirectiveNode, LiteralNode, DirectivePairNode }
