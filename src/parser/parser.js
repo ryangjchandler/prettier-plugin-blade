@@ -75,7 +75,7 @@ export class Parser {
         let directiveName = this.current.raw.substring(this.current.raw.indexOf('@') + 1)
 
         if (directiveName.includes('(')) {
-            directiveName = directiveName.substring(directiveName.indexOf('(') + 1)
+            directiveName = directiveName.substring(0, directiveName.indexOf('('))
         }
 
         let inner = this.current.raw.replace('@' + directiveName, '')

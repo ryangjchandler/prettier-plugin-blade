@@ -129,6 +129,9 @@
       this.content = content;
       this.code = code;
     }
+    toString() {
+      return `{{ ${this.code.trim()} }}`;
+    }
   };
   var DirectiveNode = class {
     constructor(content, directive, code, line) {
@@ -137,10 +140,16 @@
       this.code = code;
       this.line = line;
     }
+    toString() {
+      return `@${this.directive}`;
+    }
   };
   var LiteralNode = class {
     constructor(content) {
       this.content = content;
+    }
+    toString() {
+      return this.content;
     }
   };
   var DirectivePairNode = class {
@@ -148,6 +157,9 @@
       this.open = open;
       this.close = close;
       this.children = children;
+    }
+    toString() {
+      return `${this.open.toString()}${this.children.map((child) => child.toString()).join()}${this.close.toString()}`;
     }
   };
 
@@ -224,7 +236,7 @@
     directive() {
       let directiveName = this.current.raw.substring(this.current.raw.indexOf("@") + 1);
       if (directiveName.includes("(")) {
-        directiveName = directiveName.substring(directiveName.indexOf("(") + 1);
+        directiveName = directiveName.substring(0, directiveName.indexOf("("));
       }
       let inner = this.current.raw.replace("@" + directiveName, "");
       if (inner.startsWith("(")) {
@@ -271,11 +283,11 @@
   console.log();
   var pl = new Parser(lt);
   console.log(pl.parse());
-  var js = `@php
-    $p = 1;
-@endphp
+  var js = `<h1>Cool stuff</h1><div>cool</div>
+{{$test}}
 
-Hello, my name is {{ $foo }}!`;
+@if($test)
+@endif`;
   console.warn("Extracting tokens & ast from:\n" + js);
   var j = new Lexer(js);
   var jt = j.all();

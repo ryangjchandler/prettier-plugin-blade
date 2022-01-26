@@ -11,11 +11,11 @@ console.log()
 const pl = new Parser(lt)
 console.log(pl.parse())
 
-const js = `@php
-    $p = 1;
-@endphp
+const js = `<h1>Cool stuff</h1><div>cool</div>
+{{$test}}
 
-Hello, my name is {{ $foo }}!`
+@if($test)
+@endif`
 
 console.warn('Extracting tokens & ast from:\n' + js);
 
