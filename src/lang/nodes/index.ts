@@ -11,8 +11,24 @@ export interface Node {
     toString(): string
 }
 
+export enum EchoType {
+    Escaped,
+    Raw,
+}
+
+export namespace EchoType {
+    export function toStringParts(type: EchoType): string[] {
+        switch (type) {
+            case EchoType.Escaped:
+                return ['{{', '}}']
+            case EchoType.Raw:
+                return ['{!!', '!!}']
+        }
+    }
+}
+
 export class EchoNode implements Node {
-    constructor(private content: string, private code: string) {}
+    constructor(private content: string, private code: string, private type: EchoType) {}
 
     toDoc(): Doc {
         return group([this.toString()])
@@ -22,7 +38,8 @@ export class EchoNode implements Node {
         let code = format(`<?php ${this.code}`, { parser: 'php', plugins: [php] }).replace('<?php ', '').trim()
         code = code.substring(0, code.length - 1)
 
-        return `{{ ${code} }}`
+        const [open, close] = EchoType.toStringParts(this.type)
+        return `${open} ${code} ${close}`
     }
 }
 

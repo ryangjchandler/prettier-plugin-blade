@@ -1,6 +1,6 @@
 import { TokenType, Token } from './token'
 import * as Nodes from './nodes'
-import {DirectiveNode, DirectivePairNode, EchoNode, LiteralNode, Node} from "./nodes";
+import {DirectiveNode, DirectivePairNode, EchoNode, LiteralNode, Node, EchoType} from "./nodes";
 
 const STATIC_BLOCK_DIRECTIVES = [
     'if', 'for', 'foreach', 'forelse', 'unless',
@@ -58,6 +58,8 @@ export class Parser {
     node(): Node {
         if (this.current.type === TokenType.T_ECHO) {
             return this.echo()
+        } else if (this.current.type === TokenType.T_RAW_ECHO) {
+            return this.rawEcho()
         } else if (this.current.type === TokenType.T_DIRECTIVE) {
             return this.directive()
         } else {
@@ -69,7 +71,14 @@ export class Parser {
     }
 
     echo(): EchoNode {
-        const node = new Nodes.EchoNode(this.current.raw, this.current.raw.substring(2, this.current.raw.length - 2).trim())
+        const node = new Nodes.EchoNode(this.current.raw, this.current.raw.substring(2, this.current.raw.length - 2).trim(), EchoType.Escaped)
+        this.read()
+
+        return node
+    }
+
+    rawEcho(): EchoNode {
+        const node = new Nodes.EchoNode(this.current.raw, this.current.raw.substring(3, this.current.raw.length - 3).trim(), EchoType.Raw)
         this.read()
 
         return node
