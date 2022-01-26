@@ -1,24 +1,23 @@
 export const TokenType = {
-    T_DIRECTIVE: 'directive',
-    T_ECHO: 'echo',
-    T_RAW_ECHO: 'raw_echo',
-    T_LITERAL: 'literal',
-    T_EOF: 'eof',
-    T_COMMENT: 'comment'
-}
-
+  T_DIRECTIVE: "directive",
+  T_ECHO: "echo",
+  T_RAW_ECHO: "raw_echo",
+  T_LITERAL: "literal",
+  T_EOF: "eof",
+  T_COMMENT: "comment",
+};
 
 export class Token {
-    public type: string;
-    raw: string;
-    line: number;
-    constructor(type: string, raw: string, line: number) {
-        this.type = type
-        this.raw = raw
-        this.line = line
-    }
+  public type: string;
+  raw: string;
+  line: number;
+  constructor(type: string, raw: string, line: number) {
+    this.type = type;
+    this.raw = raw;
+    this.line = line;
+  }
 
-    static eof() {
-        return new Token(TokenType.T_EOF, '', 0)
-    }
+  static eof() {
+    return new Token(TokenType.T_EOF, "", 0);
+  }
 }
