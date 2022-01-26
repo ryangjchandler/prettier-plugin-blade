@@ -8,14 +8,7 @@ export const TokenType = {
 };
 
 export class Token {
-  public type: string;
-  raw: string;
-  line: number;
-  constructor(type: string, raw: string, line: number) {
-    this.type = type;
-    this.raw = raw;
-    this.line = line;
-  }
+  constructor(public type: string, public raw: string, public line: number) {}
 
   static eof() {
     return new Token(TokenType.T_EOF, "", 0);

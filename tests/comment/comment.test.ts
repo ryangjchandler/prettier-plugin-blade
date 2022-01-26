@@ -1,13 +1,14 @@
-import fs from "fs";
+import { formatFile } from "../utils";
 import path from "path";
-import { format } from "../utils";
-
-const fixture = fs.readFileSync(
-  path.join(__dirname, "./comment.blade.php"),
-  "utf-8"
-);
 
 test("basic", () => {
-  const formatted = format(fixture);
+  const formatted = formatFile(path.join(__dirname, "./comment.blade.php"));
+  expect(formatted).toMatchSnapshot();
+});
+
+it("does not escape comments", () => {
+  const formatted = formatFile(
+    path.join(__dirname, "./comment-with-escape.blade.php")
+  );
   expect(formatted).toMatchSnapshot();
 });

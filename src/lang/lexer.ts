@@ -9,7 +9,6 @@ export class Lexer {
   private stackPointer: number = -1;
   private tokens: Token[] = [];
   private buffer: string = "";
-  private previous: string = "";
   constructor(source: string) {
     this.source = source
       .replace("<?php", "@php")
@@ -195,7 +194,6 @@ export class Lexer {
 
   read(amount: number = 1) {
     this.stackPointer += amount;
-    this.previous = this.current;
 
     if (this.previous === "\n") {
       this.line += amount;
@@ -206,8 +204,16 @@ export class Lexer {
     return this.collect(amount, 1);
   }
 
+  lookbehind(amount: number = 1) {
+    return this.collect(-amount, amount);
+  }
+
   get current() {
     return this.collect();
+  }
+
+  get previous() {
+    return this.lookbehind();
   }
 
   collect(amount: number = 1, skip: number = 0) {

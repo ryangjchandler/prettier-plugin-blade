@@ -2,6 +2,7 @@ import { AstPath, format } from "prettier";
 import { Lexer } from "./lang/lexer";
 import { Parser } from "./lang/parser";
 import { Plugin, Doc } from "prettier";
+import { Node } from "./lang/nodes";
 
 const tw = require("prettier-plugin-tailwindcss");
 
@@ -38,8 +39,8 @@ const plugin: Plugin = {
   },
   printers: {
     blade: {
-      print(path: AstPath, _, print: (path: AstPath) => Doc) {
-        const node = path.getValue();
+      print(path: AstPath, _, print: (path: AstPath<Node>) => Doc) {
+        const node: Node = path.getValue();
 
         if (Array.isArray(node)) {
           return path.map(print);

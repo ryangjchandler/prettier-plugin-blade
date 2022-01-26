@@ -1,13 +1,7 @@
-import fs from "fs";
 import path from "path";
-import { format } from "../utils";
-
-const fixture = fs.readFileSync(
-  path.join(__dirname, "./echo.blade.php"),
-  "utf-8"
-);
+import { formatFile } from "../utils";
 
 test("basic", () => {
-  const formatted = format(fixture);
+  const formatted = formatFile(path.join(__dirname, "./echo.blade.php"));
   expect(formatted).toMatchSnapshot();
 });
