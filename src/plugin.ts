@@ -1,11 +1,12 @@
-import {format} from "prettier";
+import {AstPath, format} from "prettier";
 import {Lexer} from "./lang/lexer";
 import {Parser} from "./lang/parser";
+import { Plugin, Doc } from "prettier";
 
 const tw = require('prettier-plugin-tailwindcss')
 
 
-const plugin: any = {
+const plugin: Plugin = {
     languages: [
         {
             name: "Blade",
@@ -24,6 +25,8 @@ const plugin: any = {
 
                 return new Parser(tokens).parse()
             },
+            locStart: () => 0,
+            locEnd: () => 0,
             astFormat: 'blade',
             preprocess: function (text: string) {
                 return [
@@ -34,7 +37,7 @@ const plugin: any = {
     },
     printers: {
         blade: {
-            print(path: any, options: any, print: any) {
+            print(path: AstPath, _, print: (path: AstPath) => Doc) {
                 const node = path.getValue()
 
                 if (Array.isArray(node)) {
