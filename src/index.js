@@ -1,7 +1,8 @@
 import { Lexer, Parser, Nodes } from './parser/index'
 import { format, doc, } from 'prettier';
 import html from 'prettier/parser-html'
-const { builders: { concat, group } } = doc
+
+const tw = require('prettier-plugin-tailwindcss')
 
 const languages = [
     {
@@ -23,7 +24,9 @@ const parsers = {
         },
         astFormat: 'blade',
         preprocess: function (text) {
-            return format(text, { parser: 'html', plugins: [html] })
+            return [
+                t => format(t, { parser: 'html', plugins: [{ parsers: { html: tw.parsers.html } }] }),
+            ].reduce((t, callback) => callback(t), text)
         },
     },
 }
