@@ -1,4 +1,5 @@
-import { doc } from 'prettier'
+import { doc, format } from 'prettier'
+import php from '@prettier/plugin-php/standalone'
 
 const { builders: { group, softline, indent } } = doc
 
@@ -13,7 +14,10 @@ class EchoNode {
     }
 
     toString() {
-        return `{{ ${this.code.trim()} }}`
+        let code = format(`<?php ${this.code}`, { parser: 'php', plugins: [php] }).replace('<?php ', '').trim()
+        code = code.substring(0, code.length - 1)
+
+        return `{{ ${code} }}`
     }
 }
 

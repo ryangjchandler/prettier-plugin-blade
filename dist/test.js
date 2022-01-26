@@ -13489,7 +13489,10 @@
   console.log();
   var pl = new Parser(lt);
   console.log(pl.parse());
-  var js = `<h1>{{$test}}</h1>`;
+  var js = `<h1>
+
+Here's some very poorly formatted {{'html'}} with weird {{$echoParts + 1 / $insideOfIt}}
+</h1>`;
   console.warn("Extracting tokens & ast from:\n" + js);
   var j = new Lexer(js);
   var jt = j.all();
