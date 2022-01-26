@@ -32,6 +32,8 @@ export class Lexer {
 
             if (this.current === '{' && this.next === '{') {
                 this.tokens.push(this.echo())
+            } if (this.current === '{' && this.next === '!' && this.source[this.i + 2] === '!') {
+                this.tokens.push(this.rawEcho())
             } else if (this.current === '@' && this.next !== '@') {
                 this.tokens.push(this.directive())
             } else {
@@ -72,6 +74,37 @@ export class Lexer {
         }
 
         return new Token(TokenType.T_ECHO, raw, this.line)
+    }
+
+    rawEcho(): Token {
+        this.literal()
+
+        let raw = '{!!'
+
+        this.read()
+        this.read()
+        this.read()
+
+        while (true) {
+            if (this.i >= this.source.length) {
+                break
+            }
+
+            if (this.current === '!' && this.next === '!' && this.source[this.i + 2] === '}') {
+                raw += '!!}'
+
+                this.read()
+                this.read()
+                this.read()
+
+                break
+            }
+
+            raw += this.current
+            this.read()
+        }
+
+        return new Token(TokenType.T_RAW_ECHO, raw, this.line)
     }
 
     directive(): Token {
