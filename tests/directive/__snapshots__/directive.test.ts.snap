@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`escapes directives 1`] = `
+"<h1>@@csrf</h1>
+"
+`;
+
+exports[`escapes directives with parameters 1`] = `
+"<h1>@@if( true )</h1>
+"
+`;

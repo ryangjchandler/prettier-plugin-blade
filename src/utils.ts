@@ -15,6 +15,6 @@ export const formatAsPhp = (source: string): string => {
     return code;
   }
 
-  // The PHP plugin for Prettier will add a semi-colon by default. We don't want always want that.
+  // The PHP plugin for Prettier will add a semi-colon by default. We don't always want that.
   return code.substring(0, code.length - 1);
 };

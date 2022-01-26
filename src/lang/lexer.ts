@@ -32,10 +32,7 @@ export class Lexer {
       }
       if (this.previous !== "@" && this.collect(3) === "{!!") {
         this.tokens.push(this.rawEcho());
-      } else if (
-        this.current === "@" &&
-        !["@", "{"].includes(this.lookahead())
-      ) {
+      } else if (this.previous !== "@" && this.current === "@") {
         this.tokens.push(this.directive());
       } else {
         this.buffer += this.current;
