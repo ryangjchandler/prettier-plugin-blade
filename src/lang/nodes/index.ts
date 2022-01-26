@@ -48,7 +48,7 @@ export class DirectiveNode implements Node {
     }
 
     toString(): string {
-        return `@${this.directive}${this.code ? `(${this.code})` : ''}`
+        return `@${this.directive}${this.code ? `(${formatAsPhp(this.code)})` : ''}`
     }
 }
 
