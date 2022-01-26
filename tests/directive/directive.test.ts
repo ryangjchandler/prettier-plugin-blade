@@ -18,3 +18,10 @@ it("escapes directives", () => {
   );
   expect(formatted).toMatchSnapshot();
 });
+
+it("removes superfluous spaces from directives", () => {
+  const formatted = formatFile(
+    path.join(__dirname, "./superfluous-spaces-directive.blade.php")
+  );
+  expect(formatted).toMatchSnapshot();
+});
