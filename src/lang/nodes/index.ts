@@ -1,7 +1,6 @@
 import { doc, format } from 'prettier'
-// @ts-ignore
-import php from '@prettier/plugin-php/standalone'
 import {builders} from "prettier/doc";
+import { formatAsPhp } from '../../utils';
 import Doc = builders.Doc;
 
 const { builders: { group, softline, indent } } = doc
@@ -35,11 +34,9 @@ export class EchoNode implements Node {
     }
 
     toString(): string {
-        let code = format(`<?php ${this.code}`, { parser: 'php', plugins: [php] }).replace('<?php ', '').trim()
-        code = code.substring(0, code.length - 1)
-
         const [open, close] = EchoType.toStringParts(this.type)
-        return `${open} ${code} ${close}`
+
+        return `${open} ${formatAsPhp(this.code)} ${close}`
     }
 }
 
@@ -51,7 +48,7 @@ export class DirectiveNode implements Node {
     }
 
     toString(): string {
-        return `@${this.directive}${this.code ? `(${this.code})` : ''}`
+        return `@${this.directive}${this.code ? `(${formatAsPhp(this.code)})` : ''}`
     }
 }
 
