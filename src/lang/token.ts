@@ -4,6 +4,7 @@ export const TokenType = {
     T_RAW_ECHO: 'raw_echo',
     T_LITERAL: 'literal',
     T_EOF: 'eof',
+    T_COMMENT: 'comment'
 }
 
 

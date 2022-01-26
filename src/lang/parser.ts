@@ -1,6 +1,6 @@
 import { TokenType, Token } from './token'
 import * as Nodes from './nodes'
-import {DirectiveNode, DirectivePairNode, EchoNode, LiteralNode, Node, EchoType} from "./nodes";
+import {DirectiveNode, DirectivePairNode, EchoNode, LiteralNode, Node, EchoType, CommentNode} from "./nodes";
 
 const STATIC_BLOCK_DIRECTIVES = [
     'if', 'for', 'foreach', 'forelse', 'unless',
@@ -31,7 +31,7 @@ const isBlockClosingDirective = (directive: DirectiveNode) => directive.directiv
 const guessClosingBlockDirective = (directive: DirectiveNode) => 'end' + directive.directive
 
 export class Parser {
-    private nodes: any[];
+    private nodes: Node[];
     private current: Token;
     private next: Token;
     private i: number;
@@ -62,6 +62,8 @@ export class Parser {
             return this.rawEcho()
         } else if (this.current.type === TokenType.T_DIRECTIVE) {
             return this.directive()
+        } else if (this.current.type === TokenType.T_COMMENT) {
+          return this.comment()
         } else {
             const node =  new Nodes.LiteralNode(this.current.raw)
             this.read()
@@ -72,6 +74,16 @@ export class Parser {
 
     echo(): EchoNode {
         const node = new Nodes.EchoNode(this.current.raw, this.current.raw.substring(2, this.current.raw.length - 2).trim(), EchoType.Escaped)
+        this.read()
+
+        return node
+    }
+
+    comment(): CommentNode {
+        const node = new Nodes.CommentNode(
+            this.current.raw,
+            this.current.raw.substring(4, this.current.raw.length - 4).trim(),
+        )
         this.read()
 
         return node

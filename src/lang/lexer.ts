@@ -4,37 +4,30 @@ const ctype_space = (subject: string) => subject.replace(/\s/g, '').length === 0
 
 export class Lexer {
     private source: string[];
-    private line: number;
-    private i: number;
-    private tokens: Token[];
-    private buffer: string;
-    private previous: string;
-    private current: string;
-    private next: string;
+    private line: number = 1;
+    private stackPointer: number = -1;
+    private tokens: Token[] = [];
+    private buffer: string = '';
+    private previous: string = '';
     constructor(source: string) {
         this.source = source.replace('<?php', '@php').replace('?>', '@endphp').replace(/\r\n|\r|\n/, '\n').split('')
-        this.line = 1
-        this.i = -1
-        this.tokens = []
-        this.buffer = ''
-        this.previous = ''
-        this.current = ''
-        this.next = ''
     }
 
     all() {
         this.read()
 
         while (true) {
-            if (this.i >= this.source.length) {
+            if (this.stackPointer >= this.source.length) {
                 break
             }
 
-            if (this.previous !== '@' && this.current === '{' && this.next === '{') {
+            if (this.collect(4) === '{{--') {
+                this.tokens.push(this.comment())
+            } else if (this.previous !== '@' && this.collect(2) === '{{') {
                 this.tokens.push(this.echo())
-            } if (this.previous !== '@' && this.current === '{' && this.next === '!' && this.source[this.i + 2] === '!') {
+            } if (this.previous !== '@' && this.collect(3) === '{!!') {
                 this.tokens.push(this.rawEcho())
-            } else if (this.current === '@' && ! ['@', '{'].includes(this.next)) {
+            } else if (this.current === '@' && ! ['@', '{'].includes(this.lookahead())) {
                 this.tokens.push(this.directive())
             } else {
                 this.buffer += this.current
@@ -52,19 +45,16 @@ export class Lexer {
 
         let raw = '{{'
 
-        this.read()
-        this.read()
+        this.read(2)
 
         while (true) {
-            if (this.i >= this.source.length) {
+            if (this.stackPointer >= this.source.length) {
                 break
             }
 
-            if (this.current === '}' && this.next === '}') {
+            if (this.collect(2) === '}}') {
                 raw += '}}'
-
-                this.read()
-                this.read()
+                this.read(2)
 
                 break
             }
@@ -81,21 +71,16 @@ export class Lexer {
 
         let raw = '{!!'
 
-        this.read()
-        this.read()
-        this.read()
+        this.read(3)
 
         while (true) {
-            if (this.i >= this.source.length) {
+            if (this.stackPointer >= this.source.length) {
                 break
             }
 
-            if (this.current === '!' && this.next === '!' && this.source[this.i + 2] === '}') {
+            if (this.collect(3) === '!!}') {
                 raw += '!!}'
-
-                this.read()
-                this.read()
-                this.read()
+                this.read(3)
 
                 break
             }
@@ -105,6 +90,32 @@ export class Lexer {
         }
 
         return new Token(TokenType.T_RAW_ECHO, raw, this.line)
+    }
+
+    comment(): Token {
+        this.literal()
+
+        let raw = '{{--'
+
+        this.read(4)
+
+        while (true) {
+            if (this.stackPointer >= this.source.length) {
+                break
+            }
+
+            if (this.collect(4) === '--}}') {
+                raw += '--}}'
+
+                this.read(4)
+                break
+            }
+
+            raw += this.current
+            this.read()
+        }
+
+        return new Token(TokenType.T_COMMENT, raw, this.line)
     }
 
     directive(): Token {
@@ -117,7 +128,7 @@ export class Lexer {
         this.read()
 
         while (true) {
-            if (this.i >= this.source.length) {
+            if (this.stackPointer >= this.source.length) {
                 break;
             }
 
@@ -127,7 +138,7 @@ export class Lexer {
                 hasFoundDirectiveName = true;
             }
 
-            if (ctype_space(this.current) && (! ctype_space(this.next) || this.next !== '(')) {
+            if (ctype_space(this.current) && (! ctype_space(this.lookahead()) || this.lookahead() !== '(')) {
                 if (hasFoundDirectiveName) {
                     break;
                 }
@@ -167,17 +178,24 @@ export class Lexer {
         }
     }
 
-    read() {
-        this.i += 1
+    read(amount: number = 1) {
+        this.stackPointer += amount
         this.previous = this.current
-        this.current = this.source[this.i] || ''
         
         if (this.previous === '\n') {
-            this.line += 1
+            this.line += amount
         }
+    }
 
-        if (this.i + 1 < this.source.length) {
-            this.next = this.source[this.i + 1]
-        }
+    lookahead(amount: number = 1) {
+        return this.collect(amount, 1)
+    }
+
+    get current() {
+        return this.collect()
+    }
+
+    collect(amount: number = 1, skip: number = 0) {
+        return this.source.slice(this.stackPointer + skip, this.stackPointer + amount).join('')
     }
 }
