@@ -30,11 +30,11 @@ export class Lexer {
                 break
             }
 
-            if (this.current === '{' && this.next === '{') {
+            if (this.previous !== '@' && this.current === '{' && this.next === '{') {
                 this.tokens.push(this.echo())
             } if (this.current === '{' && this.next === '!' && this.source[this.i + 2] === '!') {
                 this.tokens.push(this.rawEcho())
-            } else if (this.current === '@' && this.next !== '@') {
+            } else if (this.current === '@' && ! ['@', '{'].includes(this.next)) {
                 this.tokens.push(this.directive())
             } else {
                 this.buffer += this.current
