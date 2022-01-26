@@ -85,3 +85,15 @@ export class DirectivePairNode implements Node {
         return `${this.open.toString()}${this.children.map(child => child.toString()).join()}${this.close.toString()}`
     }
 }
+
+export class CommentNode implements Node {
+    constructor(private code: string, private content: string) {}
+
+    toDoc(): Doc {
+        return group([this.toString()])
+    }
+
+    toString(): string {
+        return `{{-- ${this.content} --}}`
+    }
+}
