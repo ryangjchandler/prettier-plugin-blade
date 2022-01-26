@@ -40,7 +40,7 @@ class LiteralNode {
     }
 
     toDoc() {
-        return this.toString()
+        return group(this.toString())
     }
 
     toString() {

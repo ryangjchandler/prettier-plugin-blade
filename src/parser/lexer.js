@@ -32,6 +32,8 @@ export class Lexer {
             }
         }
 
+        this.literal()
+
         return this.tokens
     }
 

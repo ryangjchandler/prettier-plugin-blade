@@ -11,11 +11,7 @@ console.log()
 const pl = new Parser(lt)
 console.log(pl.parse())
 
-const js = `<h1>Cool stuff</h1><div>cool</div>
-{{$test}}
-
-@if($test)
-@endif`
+const js = `<h1>{{$test}}</h1>`
 
 console.warn('Extracting tokens & ast from:\n' + js);
 

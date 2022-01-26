@@ -16704,6 +16704,7 @@ var Lexer = class {
         this.read();
       }
     }
+    this.literal();
     return this.tokens;
   }
   echo() {
@@ -16816,7 +16817,7 @@ var LiteralNode = class {
     this.content = content;
   }
   toDoc() {
-    return this.toString();
+    return group(this.toString());
   }
   toString() {
     return this.content;
