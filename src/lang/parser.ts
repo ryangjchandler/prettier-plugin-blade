@@ -178,16 +178,20 @@ export class Parser {
         child instanceof Nodes.DirectiveNode &&
         isBlockClosingDirective(child)
       ) {
-        throw new Error(`Unexpected directive ${child.directive} on line ${
-          child.line
-        }, expected ${guessClosingBlockDirective(directive)}`);
+        throw new Error(
+          `Unexpected directive ${child.directive} on line ${
+            child.line
+          }, expected ${guessClosingBlockDirective(directive)}`
+        );
       }
 
       children.push(child);
     }
 
     if (close === null) {
-      throw new Error(`Could not find "@end..." directive for "@${directive.directive}" defined on line ${directive.line}.`);
+      throw new Error(
+        `Could not find "@end..." directive for "@${directive.directive}" defined on line ${directive.line}.`
+      );
     }
 
     return new Nodes.DirectivePairNode(directive, close, children);

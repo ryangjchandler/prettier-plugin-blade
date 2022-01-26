@@ -25,3 +25,10 @@ it("removes superfluous spaces from directives", () => {
   );
   expect(formatted).toMatchSnapshot();
 });
+
+it("should format if else directives", () => {
+  const formatted = formatFile(
+    path.join(__dirname, "./if-else-directive.blade.php")
+  );
+  expect(formatted).toMatchSnapshot();
+});
