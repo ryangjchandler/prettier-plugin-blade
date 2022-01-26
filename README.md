@@ -6,6 +6,6 @@ Right now, it supports formatting Blade files as HTML, sorting Tailwind classes 
 
 Here are some of the things that still need to be done:
 
-* [ ] Formatting directives
-* [ ] Ensuring directives with inner content are formatted correctly
-* [ ] Adding support for other `{{ }}` variants, i.e `{!!`, `{{--`.
+- [ ] Formatting directives
+- [ ] Ensuring directives with inner content are formatted correctly
+- [ ] Adding support for other `{{ }}` variants, i.e `{!!`, `{{--`.

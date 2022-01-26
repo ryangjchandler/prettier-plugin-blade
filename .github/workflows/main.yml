@@ -9,8 +9,8 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [ 16 ]
-        cache: ['npm']
+        node-version: [16]
+        cache: ["npm"]
 
     steps:
       - uses: actions/checkout@master
@@ -20,3 +20,21 @@ jobs:
 
       - run: npm ci
       - run: npm test
+
+  prettier:
+    name: prettier
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16]
+        cache: ["npm"]
+
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - run: npm ci
+      - run: npx prettier --check .
