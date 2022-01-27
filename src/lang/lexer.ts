@@ -153,6 +153,10 @@ export class Lexer {
         const DIRECTIVE_ORIGINAL_LINE = this.line;
 
         while (ctype_space(this.current)) {
+            if (this.stackPointer >= this.source.length) {
+                return new Token(TokenType.Directive, match.trim(), this.line);
+            }
+
             whitespace += this.current;
             this.read();
         }
@@ -220,7 +224,7 @@ export class Lexer {
     }
 
     lookbehind(amount: number = 1) {
-        return this.collect(-amount, amount);
+        return this.collect(0, -amount);
     }
 
     get current() {
