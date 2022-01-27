@@ -187,6 +187,11 @@ export class Lexer {
                 parens += 1;
             }
 
+            // @ts-ignore
+            if (this.current === ')') {
+                parens -= 1;
+            }
+
             this.read();
         }
 
