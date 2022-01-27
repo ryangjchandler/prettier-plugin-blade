@@ -8,6 +8,7 @@ const { builders: { group, softline, indent } } = doc
 export interface Node {
     toDoc(): Doc
     toString(): string
+    getId(): number
 }
 
 export enum EchoType {
@@ -27,7 +28,7 @@ export namespace EchoType {
 }
 
 export class EchoNode implements Node {
-    constructor(private content: string, private code: string, private type: EchoType) {}
+    constructor(private content: string, private code: string, private type: EchoType, private id: number) {}
 
     toDoc(): Doc {
         return group([this.toString()])
@@ -38,10 +39,14 @@ export class EchoNode implements Node {
 
         return `${open} ${formatAsPhp(this.code)} ${close}`
     }
+
+    getId(): number {
+        return this.id
+    }
 }
 
 export class DirectiveNode implements Node {
-    constructor(public content: string, public directive: string, public code: string, public line: number) {}
+    constructor(public content: string, public directive: string, public code: string, public line: number, private id: number) {}
 
     toDoc(): Doc {
         return group([this.toString()])
@@ -50,10 +55,14 @@ export class DirectiveNode implements Node {
     toString(): string {
         return `@${this.directive}${this.code ? `(${formatAsPhp(this.code)})` : ''}`
     }
+
+    getId(): number {
+        return this.id
+    }
 }
 
 export class LiteralNode implements Node {
-    constructor(private content: string) {}
+    constructor(private content: string, private id: number) {}
 
     toDoc(): Doc {
         return group(this.toString())
@@ -62,14 +71,20 @@ export class LiteralNode implements Node {
     toString(): string {
         return this.content
     }
+
+    getId(): number {
+        return this.id
+    }
 }
 
 export class DirectivePairNode implements Node {
 
     constructor(
-        private open: DirectiveNode,
-        private close: DirectiveNode,
-        private children: Node[]
+        public readonly open: DirectiveNode,
+        public readonly close: DirectiveNode,
+        public readonly arms: DirectiveNode[],
+        public readonly children: Node[],
+        private id: number
     ) { }
 
     toDoc(): Doc {
@@ -84,10 +99,14 @@ export class DirectivePairNode implements Node {
     toString(): string {
         return `${this.open.toString()}${this.children.map(child => child.toString()).join()}${this.close.toString()}`
     }
+
+    getId(): number {
+        return this.id
+    }
 }
 
 export class CommentNode implements Node {
-    constructor(private code: string, private content: string) {}
+    constructor(private code: string, private content: string, private id: number) {}
 
     toDoc(): Doc {
         return group([this.toString()])
@@ -95,5 +114,9 @@ export class CommentNode implements Node {
 
     toString(): string {
         return `{{-- ${this.content} --}}`
+    }
+
+    getId(): number {
+        return this.id
     }
 }

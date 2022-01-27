@@ -2,7 +2,7 @@ import { TokenType, Token } from './token'
 import * as Nodes from './nodes'
 import {DirectiveNode, DirectivePairNode, EchoNode, LiteralNode, Node, EchoType, CommentNode} from "./nodes";
 
-const STATIC_BLOCK_DIRECTIVES = [
+const STATIC_BLOCK_DIRECTIVES: string[] = [
     'if', 'for', 'foreach', 'forelse', 'unless',
     'while', 'isset', 'empty', 'auth', 'guest',
     'production', 'env', 'hasSection', 'sectionMissing',
@@ -10,7 +10,7 @@ const STATIC_BLOCK_DIRECTIVES = [
     'prepend',
 ];
 
-const isBlockDirective = (directive: DirectiveNode) => {
+const isBlockDirective = (directive: DirectiveNode): boolean => {
     if (STATIC_BLOCK_DIRECTIVES.includes(directive.directive)) {
         return true
     }
@@ -23,18 +23,24 @@ const isBlockDirective = (directive: DirectiveNode) => {
     return false
 }
 
-const directiveCanBeClosedBy = (open: DirectiveNode, close: DirectiveNode) => {
+const directiveCanBeClosedBy = (open: DirectiveNode, close: DirectiveNode): boolean => {
     return close.directive === ('end' + open.directive)
 }
 
-const isBlockClosingDirective = (directive: DirectiveNode) => directive.directive.startsWith('end')
-const guessClosingBlockDirective = (directive: DirectiveNode) => 'end' + directive.directive
+const isBlockArmDirectiveFor = (open: DirectiveNode, directive: DirectiveNode): boolean => {
+    return ['else', 'else' + open.directive].includes(directive.directive)
+}
+
+const isBlockClosingDirective = (directive: DirectiveNode): boolean => directive.directive.startsWith('end')
+const guessClosingBlockDirective = (directive: DirectiveNode): string => 'end' + directive.directive
 
 export class Parser {
     private nodes: Node[];
     private current: Token;
     private next: Token;
     private i: number;
+    private id: number;
+
     constructor(private tokens: Token[]) {
         this.tokens.push(Token.eof())
 
@@ -42,6 +48,7 @@ export class Parser {
         this.current = Token.eof()
         this.next = Token.eof()
         this.i = -1
+        this.id = -1
     }
 
     parse() {
@@ -56,6 +63,8 @@ export class Parser {
     }
 
     node(): Node {
+        this.id += 1
+
         if (this.current.type === TokenType.T_ECHO) {
             return this.echo()
         } else if (this.current.type === TokenType.T_RAW_ECHO) {
@@ -65,7 +74,7 @@ export class Parser {
         } else if (this.current.type === TokenType.T_COMMENT) {
           return this.comment()
         } else {
-            const node =  new Nodes.LiteralNode(this.current.raw)
+            const node =  new LiteralNode(this.current.raw, this.id)
             this.read()
 
             return node
@@ -73,16 +82,17 @@ export class Parser {
     }
 
     echo(): EchoNode {
-        const node = new Nodes.EchoNode(this.current.raw, this.current.raw.substring(2, this.current.raw.length - 2).trim(), EchoType.Escaped)
+        const node = new EchoNode(this.current.raw, this.current.raw.substring(2, this.current.raw.length - 2).trim(), EchoType.Escaped, this.id)
         this.read()
 
         return node
     }
 
     comment(): CommentNode {
-        const node = new Nodes.CommentNode(
+        const node = new CommentNode(
             this.current.raw,
             this.current.raw.substring(4, this.current.raw.length - 4).trim(),
+            this.id
         )
         this.read()
 
@@ -90,7 +100,7 @@ export class Parser {
     }
 
     rawEcho(): EchoNode {
-        const node = new Nodes.EchoNode(this.current.raw, this.current.raw.substring(3, this.current.raw.length - 3).trim(), EchoType.Raw)
+        const node = new EchoNode(this.current.raw, this.current.raw.substring(3, this.current.raw.length - 3).trim(), EchoType.Raw, this.id)
         this.read()
 
         return node
@@ -112,7 +122,7 @@ export class Parser {
             inner = inner.substring(0, inner.length - 1)
         }
 
-        const directive = new Nodes.DirectiveNode(this.current.raw, directiveName, inner, this.current.line)
+        const directive = new DirectiveNode(this.current.raw, directiveName, inner, this.current.line, this.id)
 
         this.read()
 
@@ -121,28 +131,33 @@ export class Parser {
         }
 
         let children = []
+        let arms = []
         let close = null
 
         while (this.current.type !== TokenType.T_EOF) {
             const child = this.node()
             
-            if (child instanceof Nodes.DirectiveNode && directiveCanBeClosedBy(directive, child)) {
+            if (! (child instanceof DirectiveNode)) {
+                children.push(child)
+                continue
+            }
+
+            if (directiveCanBeClosedBy(directive, child)) {
                 close = child
                 break
-            }
-
-            if (child instanceof Nodes.DirectiveNode && isBlockClosingDirective(child)) {
+            } else if (isBlockArmDirectiveFor(directive, child)) {
+                children.push(child)
+                arms.push(child)
+            } else if (isBlockClosingDirective(child)) {
                 throw `Unexpected directive ${child.directive} on line ${child.line}, expected ${guessClosingBlockDirective(directive)}`;
             }
-
-            children.push(child)
         }
 
         if (close === null) {
             throw `Could not find "@end..." directive for "@${directive.directive}" defined on line ${directive.line}.`
         }
 
-        return new Nodes.DirectivePairNode(directive, close, children)
+        return new DirectivePairNode(directive, close, arms, children, this.id)
     }
 
     read() {

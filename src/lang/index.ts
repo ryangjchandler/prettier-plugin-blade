@@ -3,7 +3,7 @@ import { Lexer } from './lexer'
 import { Parser } from './parser'
 import * as Nodes from './nodes'
 
-export default {
+export {
     TokenType,
     Token,
     Lexer,
