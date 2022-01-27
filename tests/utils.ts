@@ -4,19 +4,19 @@ import fs from "fs";
 import path from "path";
 
 export function allFilesIn(dirPath: string, files: string[] = []): string[] {
-  const dir = fs.readdirSync(dirPath)
+  const dir = fs.readdirSync(dirPath);
 
-  dir.forEach(file => {
-    const realPath = path.join(dirPath, '/', file)
+  dir.forEach((file) => {
+    const realPath = path.join(dirPath, "/", file);
 
     if (fs.statSync(realPath).isDirectory()) {
-      files = allFilesIn(realPath, files)
+      files = allFilesIn(realPath, files);
     } else {
-      files.push(realPath)
+      files.push(realPath);
     }
-  })
+  });
 
-  return files
+  return files;
 }
 
 export function format(content: string) {
