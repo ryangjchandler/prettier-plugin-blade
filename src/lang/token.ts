@@ -1,16 +1,20 @@
-export const TokenType = {
-    T_DIRECTIVE: "directive",
-    T_ECHO: "echo",
-    T_RAW_ECHO: "raw_echo",
-    T_LITERAL: "literal",
-    T_EOF: "eof",
-    T_COMMENT: "comment",
-};
+export enum TokenType {
+    Directive,
+    Echo,
+    RawEcho,
+    Literal,
+    Eof,
+    Comment,
+}
 
 export class Token {
-    constructor(public type: string, public raw: string, public line: number) {}
+    constructor(
+        public type: TokenType,
+        public raw: string,
+        public line: number
+    ) {}
 
     static eof() {
-        return new Token(TokenType.T_EOF, "", 0);
+        return new Token(TokenType.Eof, "", 0);
     }
 }

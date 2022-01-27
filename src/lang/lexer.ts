@@ -76,7 +76,7 @@ export class Lexer {
             this.read();
         }
 
-        return new Token(TokenType.T_ECHO, raw, this.line);
+        return new Token(TokenType.Echo, raw, this.line);
     }
 
     rawEcho(): Token {
@@ -102,7 +102,7 @@ export class Lexer {
             this.read();
         }
 
-        return new Token(TokenType.T_RAW_ECHO, raw, this.line);
+        return new Token(TokenType.RawEcho, raw, this.line);
     }
 
     comment(): Token {
@@ -128,7 +128,7 @@ export class Lexer {
             this.read();
         }
 
-        return new Token(TokenType.T_COMMENT, raw, this.line);
+        return new Token(TokenType.Comment, raw, this.line);
     }
 
     directive(): Token {
@@ -147,7 +147,7 @@ export class Lexer {
         }
 
         if (this.stackPointer >= this.source.length) {
-            return new Token(TokenType.T_DIRECTIVE, match.trim(), this.line);
+            return new Token(TokenType.Directive, match.trim(), this.line);
         }
 
         const DIRECTIVE_ORIGINAL_LINE = this.line;
@@ -161,7 +161,7 @@ export class Lexer {
             this.buffer += whitespace + this.current;
 
             return new Token(
-                TokenType.T_DIRECTIVE,
+                TokenType.Directive,
                 match.trim(),
                 DIRECTIVE_ORIGINAL_LINE
             );
@@ -188,20 +188,20 @@ export class Lexer {
             }
 
             // @ts-ignore
-            if (this.current === ')') {
+            if (this.current === ")") {
                 parens -= 1;
             }
 
             this.read();
         }
 
-        return new Token(TokenType.T_DIRECTIVE, match.trim(), this.line);
+        return new Token(TokenType.Directive, match.trim(), this.line);
     }
 
     literal() {
         if (this.buffer.length > 0) {
             this.tokens.push(
-                new Token(TokenType.T_LITERAL, this.buffer, this.line)
+                new Token(TokenType.Literal, this.buffer, this.line)
             );
             this.buffer = "";
         }
