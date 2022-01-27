@@ -73,7 +73,7 @@ export class Parser {
         this.read();
         this.read();
 
-        while (this.current.type !== TokenType.T_EOF) {
+        while (this.current.type !== TokenType.Eof) {
             this.nodes.push(this.node());
         }
 
@@ -81,13 +81,13 @@ export class Parser {
     }
 
     node(): Node {
-        if (this.current.type === TokenType.T_ECHO) {
+        if (this.current.type === TokenType.Echo) {
             return this.echo();
-        } else if (this.current.type === TokenType.T_RAW_ECHO) {
+        } else if (this.current.type === TokenType.RawEcho) {
             return this.rawEcho();
-        } else if (this.current.type === TokenType.T_DIRECTIVE) {
+        } else if (this.current.type === TokenType.Directive) {
             return this.directive();
-        } else if (this.current.type === TokenType.T_COMMENT) {
+        } else if (this.current.type === TokenType.Comment) {
             return this.comment();
         } else {
             const node = new Nodes.LiteralNode(this.current.raw);
@@ -166,7 +166,7 @@ export class Parser {
         let children = [];
         let close = null;
 
-        while (this.current.type !== TokenType.T_EOF) {
+        while (this.current.type !== TokenType.Eof) {
             const child = this.node();
 
             if (
