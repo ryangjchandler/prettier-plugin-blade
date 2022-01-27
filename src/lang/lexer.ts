@@ -3,9 +3,8 @@ import { TokenType, Token } from "./token";
 const ctype_space = (subject: string) =>
     subject.replace(/\s/g, "").length === 0;
 
-const alnum_pattern = /^[a-z0-9]+$/i
-const ctype_alnum = (subject: string): boolean =>
-    !! alnum_pattern.test(subject)
+const alnum_pattern = /^[a-z0-9]+$/i;
+const ctype_alnum = (subject: string): boolean => !!alnum_pattern.test(subject);
 
 export class Lexer {
     private source: string[];
@@ -37,7 +36,11 @@ export class Lexer {
 
             if (this.previous !== "@" && this.collect(3) === "{!!") {
                 this.tokens.push(this.rawEcho());
-            } else if (this.previous !== "@" && this.current === "@" && ctype_alnum(this.lookahead())) {
+            } else if (
+                this.previous !== "@" &&
+                this.current === "@" &&
+                ctype_alnum(this.lookahead())
+            ) {
                 this.tokens.push(this.directive());
             } else {
                 this.buffer += this.current;
@@ -132,55 +135,59 @@ export class Lexer {
         this.literal();
 
         let match = this.current;
-        let whitespace = ''
+        let whitespace = "";
         let parens = 0;
 
         this.read();
 
         // While we have some alphanumeric  characters
         while (ctype_alnum(this.current)) {
-            match += this.current
-            this.read()
+            match += this.current;
+            this.read();
         }
 
         if (this.stackPointer >= this.source.length) {
-            return new Token(TokenType.T_DIRECTIVE, match.trim(), this.line);    
+            return new Token(TokenType.T_DIRECTIVE, match.trim(), this.line);
         }
 
-        const DIRECTIVE_ORIGINAL_LINE = this.line
+        const DIRECTIVE_ORIGINAL_LINE = this.line;
 
         while (ctype_space(this.current)) {
-            whitespace += this.current
-            this.read()
+            whitespace += this.current;
+            this.read();
         }
 
-        if (this.current !== '(') {
-            this.buffer += whitespace + this.current
+        if (this.current !== "(") {
+            this.buffer += whitespace + this.current;
 
-            return new Token(TokenType.T_DIRECTIVE, match.trim(), DIRECTIVE_ORIGINAL_LINE);    
+            return new Token(
+                TokenType.T_DIRECTIVE,
+                match.trim(),
+                DIRECTIVE_ORIGINAL_LINE
+            );
         }
 
-        match += whitespace + this.current
-        this.read()
+        match += whitespace + this.current;
+        this.read();
 
         while (true) {
             if (this.stackPointer >= this.source.length) {
-                break
+                break;
             }
 
-            match += this.current
+            match += this.current;
 
             // @ts-ignore
-            if (this.current === ')' && parens === 0) {
-                this.read()
-                break
+            if (this.current === ")" && parens === 0) {
+                this.read();
+                break;
             }
 
-            if (this.current === '(') {
-                parens += 1
+            if (this.current === "(") {
+                parens += 1;
             }
 
-            this.read()
+            this.read();
         }
 
         return new Token(TokenType.T_DIRECTIVE, match.trim(), this.line);
@@ -207,9 +214,9 @@ export class Lexer {
         return this.collect(amount + 1, 1);
     }
 
-  lookbehind(amount: number = 1) {
-    return this.collect(-amount, amount);
-  }
+    lookbehind(amount: number = 1) {
+        return this.collect(-amount, amount);
+    }
 
     get current() {
         return this.collect();
