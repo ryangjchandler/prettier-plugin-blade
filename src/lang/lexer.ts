@@ -198,7 +198,7 @@ export class Lexer {
   }
 
   lookahead(amount: number = 1) {
-    return this.collect(amount, 1);
+    return this.collect(amount + 1, 1);
   }
 
   lookbehind(amount: number = 1) {
