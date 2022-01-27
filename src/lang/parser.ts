@@ -140,8 +140,9 @@ export class Parser {
                 directiveName.indexOf("(")
             );
         }
+        directiveName = directiveName.trim();
 
-        let inner = this.current.raw.replace("@" + directiveName, "");
+        let inner = this.current.raw.replace("@" + directiveName, "").trim();
         if (inner.startsWith("(")) {
             inner = inner.substring(1);
         }

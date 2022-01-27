@@ -4,7 +4,7 @@ import { formatAsPhp } from "../../utils";
 import Doc = builders.Doc;
 
 const {
-    builders: { group, softline, indent },
+    builders: { group, softline, indent, line, hardline },
 } = doc;
 
 export interface Node {
@@ -73,7 +73,7 @@ export class LiteralNode implements Node {
     }
 
     toString(): string {
-        return this.content;
+        return this.content.trimStart();
     }
 }
 
@@ -86,9 +86,10 @@ export class DirectivePairNode implements Node {
 
     toDoc(): Doc {
         return group([
-            softline,
             this.open.toDoc(),
-            this.children.map((child) => indent(child.toDoc())),
+            hardline,
+            this.children.map((child) => child.toDoc()),
+            hardline,
             this.close.toDoc(),
         ]);
     }
