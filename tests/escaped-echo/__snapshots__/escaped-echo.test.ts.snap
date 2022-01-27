@@ -1,6 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`basic 1`] = `
-"Escaped echos should be left @{{asTheyAre}} like @{!!this!!}
-"
-`;
