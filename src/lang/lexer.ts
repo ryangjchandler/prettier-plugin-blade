@@ -1,221 +1,234 @@
 import { TokenType, Token } from "./token";
 
 const ctype_space = (subject: string) =>
-  subject.replace(/\s/g, "").length === 0;
+    subject.replace(/\s/g, "").length === 0;
+
+const alnum_pattern = /^[a-z0-9]+$/i;
+const ctype_alnum = (subject: string): boolean => !!alnum_pattern.test(subject);
 
 export class Lexer {
-  private source: string[];
-  private line: number = 1;
-  private stackPointer: number = -1;
-  private tokens: Token[] = [];
-  private buffer: string = "";
-  constructor(source: string) {
-    this.source = source
-      .replace("<?php", "@php")
-      .replace("?>", "@endphp")
-      .replace(/\r\n|\r|\n/, "\n")
-      .split("");
-  }
-
-  all() {
-    this.read();
-
-    while (true) {
-      if (this.stackPointer >= this.source.length) {
-        break;
-      }
-
-      if (this.collect(4) === "{{--") {
-        this.tokens.push(this.comment());
-      } else if (this.previous !== "@" && this.collect(2) === "{{") {
-        this.tokens.push(this.echo());
-      }
-      if (this.previous !== "@" && this.collect(3) === "{!!") {
-        this.tokens.push(this.rawEcho());
-      } else if (this.previous !== "@" && this.current === "@") {
-        this.tokens.push(this.directive());
-      } else {
-        this.buffer += this.current;
-        this.read();
-      }
+    private source: string[];
+    private line: number = 1;
+    private stackPointer: number = -1;
+    private tokens: Token[] = [];
+    private buffer: string = "";
+    constructor(source: string) {
+        this.source = source
+            .replace("<?php", "@php")
+            .replace("?>", "@endphp")
+            .replace(/\r\n|\r|\n/, "\n")
+            .split("");
     }
 
-    this.literal();
+    all() {
+        this.read();
 
-    return this.tokens;
-  }
+        while (true) {
+            if (this.stackPointer >= this.source.length) {
+                break;
+            }
 
-  echo(): Token {
-    this.literal();
+            if (this.collect(4) === "{{--") {
+                this.tokens.push(this.comment());
+            } else if (this.previous !== "@" && this.collect(2) === "{{") {
+                this.tokens.push(this.echo());
+            }
 
-    let raw = "{{";
+            if (this.previous !== "@" && this.collect(3) === "{!!") {
+                this.tokens.push(this.rawEcho());
+            } else if (
+                this.previous !== "@" &&
+                this.current === "@" &&
+                ctype_alnum(this.lookahead())
+            ) {
+                this.tokens.push(this.directive());
+            } else {
+                this.buffer += this.current;
+                this.read();
+            }
+        }
 
-    this.read(2);
+        this.literal();
 
-    while (true) {
-      if (this.stackPointer >= this.source.length) {
-        break;
-      }
+        return this.tokens;
+    }
 
-      if (this.collect(2) === "}}") {
-        raw += "}}";
+    echo(): Token {
+        this.literal();
+
+        let raw = "{{";
+
         this.read(2);
 
-        break;
-      }
+        while (true) {
+            if (this.stackPointer >= this.source.length) {
+                break;
+            }
 
-      raw += this.current;
-      this.read();
+            if (this.collect(2) === "}}") {
+                raw += "}}";
+                this.read(2);
+
+                break;
+            }
+
+            raw += this.current;
+            this.read();
+        }
+
+        return new Token(TokenType.T_ECHO, raw, this.line);
     }
 
-    return new Token(TokenType.T_ECHO, raw, this.line);
-  }
+    rawEcho(): Token {
+        this.literal();
 
-  rawEcho(): Token {
-    this.literal();
+        let raw = "{!!";
 
-    let raw = "{!!";
-
-    this.read(3);
-
-    while (true) {
-      if (this.stackPointer >= this.source.length) {
-        break;
-      }
-
-      if (this.collect(3) === "!!}") {
-        raw += "!!}";
         this.read(3);
 
-        break;
-      }
+        while (true) {
+            if (this.stackPointer >= this.source.length) {
+                break;
+            }
 
-      raw += this.current;
-      this.read();
+            if (this.collect(3) === "!!}") {
+                raw += "!!}";
+                this.read(3);
+
+                break;
+            }
+
+            raw += this.current;
+            this.read();
+        }
+
+        return new Token(TokenType.T_RAW_ECHO, raw, this.line);
     }
 
-    return new Token(TokenType.T_RAW_ECHO, raw, this.line);
-  }
+    comment(): Token {
+        this.literal();
 
-  comment(): Token {
-    this.literal();
-
-    let raw = "{{--";
-
-    this.read(4);
-
-    while (true) {
-      if (this.stackPointer >= this.source.length) {
-        break;
-      }
-
-      if (this.collect(4) === "--}}") {
-        raw += "--}}";
+        let raw = "{{--";
 
         this.read(4);
-        break;
-      }
 
-      raw += this.current;
-      this.read();
-    }
+        while (true) {
+            if (this.stackPointer >= this.source.length) {
+                break;
+            }
 
-    return new Token(TokenType.T_COMMENT, raw, this.line);
-  }
+            if (this.collect(4) === "--}}") {
+                raw += "--}}";
 
-  directive(): Token {
-    this.literal();
+                this.read(4);
+                break;
+            }
 
-    let match = this.current;
-    let hasFoundDirectiveName = false;
-    let parens = 0;
-
-    this.read();
-
-    while (true) {
-      if (this.stackPointer >= this.source.length) {
-        break;
-      }
-
-      match += this.current;
-
-      if (
-        (this.current === "(" || ctype_space(this.current)) &&
-        !hasFoundDirectiveName
-      ) {
-        hasFoundDirectiveName = true;
-      }
-
-      if (
-        ctype_space(this.current) &&
-        (!ctype_space(this.lookahead()) || this.lookahead() !== "(")
-      ) {
-        if (hasFoundDirectiveName) {
-          break;
+            raw += this.current;
+            this.read();
         }
 
-        return new Token(TokenType.T_LITERAL, match, this.line);
-      }
+        return new Token(TokenType.T_COMMENT, raw, this.line);
+    }
 
-      if (hasFoundDirectiveName && this.current === "(") {
-        parens++;
-      }
+    directive(): Token {
+        this.literal();
 
-      if (parens === 0 && [")", "\n"].includes(this.current)) {
-        break;
-      }
+        let match = this.current;
+        let whitespace = "";
+        let parens = 0;
 
-      if (this.current === ")") {
-        parens--;
+        this.read();
 
-        // We should probably be checking for a new-line character here too since we'll want to preserve it.
-        if (parens === 0 && hasFoundDirectiveName) {
-          this.read();
-
-          break;
+        // While we have some alphanumeric  characters
+        while (ctype_alnum(this.current)) {
+            match += this.current;
+            this.read();
         }
-      }
 
-      this.read();
+        if (this.stackPointer >= this.source.length) {
+            return new Token(TokenType.T_DIRECTIVE, match.trim(), this.line);
+        }
+
+        const DIRECTIVE_ORIGINAL_LINE = this.line;
+
+        while (ctype_space(this.current)) {
+            whitespace += this.current;
+            this.read();
+        }
+
+        if (this.current !== "(") {
+            this.buffer += whitespace + this.current;
+
+            return new Token(
+                TokenType.T_DIRECTIVE,
+                match.trim(),
+                DIRECTIVE_ORIGINAL_LINE
+            );
+        }
+
+        match += whitespace + this.current;
+        this.read();
+
+        while (true) {
+            if (this.stackPointer >= this.source.length) {
+                break;
+            }
+
+            match += this.current;
+
+            // @ts-ignore
+            if (this.current === ")" && parens === 0) {
+                this.read();
+                break;
+            }
+
+            if (this.current === "(") {
+                parens += 1;
+            }
+
+            this.read();
+        }
+
+        return new Token(TokenType.T_DIRECTIVE, match.trim(), this.line);
     }
 
-    return new Token(TokenType.T_DIRECTIVE, match.trim(), this.line);
-  }
-
-  literal() {
-    if (this.buffer.length > 0) {
-      this.tokens.push(new Token(TokenType.T_LITERAL, this.buffer, this.line));
-      this.buffer = "";
+    literal() {
+        if (this.buffer.length > 0) {
+            this.tokens.push(
+                new Token(TokenType.T_LITERAL, this.buffer, this.line)
+            );
+            this.buffer = "";
+        }
     }
-  }
 
-  read(amount: number = 1) {
-    this.stackPointer += amount;
+    read(amount: number = 1) {
+        this.stackPointer += amount;
 
-    if (this.previous === "\n") {
-      this.line += amount;
+        if (this.previous === "\n") {
+            this.line += amount;
+        }
     }
-  }
 
-  lookahead(amount: number = 1) {
-    return this.collect(amount + 1, 1);
-  }
+    lookahead(amount: number = 1) {
+        return this.collect(amount + 1, 1);
+    }
 
-  lookbehind(amount: number = 1) {
-    return this.collect(-amount, amount);
-  }
+    lookbehind(amount: number = 1) {
+        return this.collect(-amount, amount);
+    }
 
-  get current() {
-    return this.collect();
-  }
+    get current() {
+        return this.collect();
+    }
 
-  get previous() {
-    return this.lookbehind();
-  }
+    get previous() {
+        return this.lookbehind();
+    }
 
-  collect(amount: number = 1, skip: number = 0) {
-    return this.source
-      .slice(this.stackPointer + skip, this.stackPointer + amount)
-      .join("");
-  }
+    collect(amount: number = 1, skip: number = 0) {
+        return this.source
+            .slice(this.stackPointer + skip, this.stackPointer + amount)
+            .join("");
+    }
 }

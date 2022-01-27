@@ -1,7 +1,7 @@
 module.exports = {
-  content: ["./fixtures/**/*.blade.php"],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
+    content: ["./fixtures/**/*.blade.php"],
+    theme: {
+        extend: {},
+    },
+    plugins: [],
 };
