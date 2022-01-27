@@ -6,7 +6,13 @@ This package includes a Prettier plugin that adds support for Laravel's Blade te
 
 ## Installation
 
-> Coming soon!
+This package can be installed via `npm`:
+
+```bash
+npm install https://github.com/ryangjchandler/prettier-plugin-blade
+```
+
+> This plugin is not currently available on NPM. The only way to install it currently is via the GitHub repository or a local symlink.
 
 ## Missing features?
 
