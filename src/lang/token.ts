@@ -8,7 +8,11 @@ export enum TokenType {
 }
 
 export class Token {
-    constructor(public type: TokenType, public raw: string, public line: number) {}
+    constructor(
+        public type: TokenType,
+        public raw: string,
+        public line: number
+    ) {}
 
     static eof() {
         return new Token(TokenType.Eof, "", 0);

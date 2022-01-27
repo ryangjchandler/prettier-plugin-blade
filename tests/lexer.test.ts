@@ -30,9 +30,9 @@ it("can generate raw echo tokens", () => {
 });
 
 it("can generate directive tokens", () => {
-    const tokens = lex("@php @if(true) @else() @if  (true) @if(auth()) @if(')' === '@test')").filter(
-        (token) => token.type !== TokenType.Literal && !!token.raw.trim()
-    );
+    const tokens = lex(
+        "@php @if(true) @else() @if  (true) @if(auth()) @if(')' === '@test')"
+    ).filter((token) => token.type !== TokenType.Literal && !!token.raw.trim());
 
     expect(tokens[0]).toHaveProperty("type", TokenType.Directive);
     expect(tokens[0]).toHaveProperty("raw", "@php");
@@ -46,7 +46,7 @@ it("can generate directive tokens", () => {
     expect(tokens[3]).toHaveProperty("type", TokenType.Directive);
     expect(tokens[3]).toHaveProperty("raw", "@if  (true)");
 
-    expect(tokens[4]).toHaveProperty("type", TokenType.Directive)
+    expect(tokens[4]).toHaveProperty("type", TokenType.Directive);
     expect(tokens[4]).toHaveProperty("raw", "@if(auth())");
 });
 
