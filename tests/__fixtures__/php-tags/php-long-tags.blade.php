@@ -5,6 +5,6 @@
 </h1>
 ----
 @php
-    echo \\"long way there\\";
+    echo "long way there";
 @endphp
 <h1>Awesome</h1>
