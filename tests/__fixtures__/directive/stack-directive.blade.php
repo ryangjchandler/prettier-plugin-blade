@@ -5,7 +5,7 @@
 </head>
 ----
 <head>
-    <!-- Head Contents -->
+  <!-- Head Contents -->
 
-    @stack('scripts')
+  @stack('scripts')
 </head>

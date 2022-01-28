@@ -7,6 +7,4 @@
 ----
 @inject('metrics', 'App\Services\MetricsService')
 
-<div>
-    Monthly Revenue: {{ $metrics->monthlyRevenue() }}.
-</div>
+<div>Monthly Revenue: {{ $metrics->monthlyRevenue() }}.</div>
