@@ -1,40 +1,40 @@
 name: Test
 on:
-    - push
+  - push
 
 jobs:
-    jest:
-        name: jest
-        runs-on: ubuntu-latest
+  jest:
+    name: jest
+    runs-on: ubuntu-latest
 
-        strategy:
-            matrix:
-                node-version: [16]
-                cache: ["npm"]
+    strategy:
+      matrix:
+        node-version: [16]
+        cache: ["npm"]
 
-        steps:
-            - uses: actions/checkout@master
-            - uses: actions/setup-node@v2
-              with:
-                  node-version: ${{ matrix.node-version }}
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
 
-            - run: npm ci
-            - run: npm test
+      - run: npm ci
+      - run: npm test
 
-    prettier:
-        name: prettier
-        runs-on: ubuntu-latest
+  prettier:
+    name: prettier
+    runs-on: ubuntu-latest
 
-        strategy:
-            matrix:
-                node-version: [16]
-                cache: ["npm"]
+    strategy:
+      matrix:
+        node-version: [16]
+        cache: ["npm"]
 
-        steps:
-            - uses: actions/checkout@master
-            - uses: actions/setup-node@v2
-              with:
-                  node-version: ${{ matrix.node-version }}
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
 
-            - run: npm ci
-            - run: npx prettier --check .
+      - run: npm ci
+      - run: npx prettier --check .
