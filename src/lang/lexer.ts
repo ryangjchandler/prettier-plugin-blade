@@ -162,7 +162,7 @@ export class Lexer {
         }
 
         if (this.current !== "(") {
-            this.buffer += whitespace + this.current;
+            this.buffer += whitespace;
 
             return new Token(
                 TokenType.Directive,

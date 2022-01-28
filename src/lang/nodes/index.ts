@@ -73,7 +73,7 @@ export class LiteralNode implements Node {
     }
 
     toString(): string {
-        return this.content.trimStart();
+        return this.content;
     }
 }
 
