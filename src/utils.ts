@@ -3,18 +3,32 @@ import { format } from "prettier";
 import php from "@prettier/plugin-php/standalone";
 
 export const formatAsPhp = (source: string): string => {
+    let manipulated = source;
+
     if (!source.startsWith("<?php")) {
-        source = "<?php " + source;
+        manipulated = "<?php " + manipulated;
     }
 
-    let code = format(source, { parser: "php", plugins: [php] })
-        .replace("<?php ", "")
-        .trim();
+    if (!manipulated.endsWith(";")) {
+        manipulated += ";";
+    }
+
+    try {
+        manipulated = format(source, { parser: "php", plugins: [php] })
+            .replace("<?php ", "")
+            .trim();
+    } catch (e) {
+        // Fallback to original source if php formatter fails
+        return source.trim();
+    }
 
     if (source.trim().endsWith(";")) {
-        return code;
+        return manipulated;
     }
 
     // The PHP plugin for Prettier will add a semi-colon by default. We don't always want that.
-    return code.substring(0, code.length - 1);
+    if (manipulated.endsWith(";")) {
+        manipulated.substring(0, manipulated.length - 1);
+    }
+    return manipulated;
 };

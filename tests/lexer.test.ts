@@ -1,6 +1,5 @@
 import { Lexer } from "../src/lang/lexer";
 import { Token, TokenType } from "../src/lang/token";
-import exp from "constants";
 
 const lex = (source: string): Token[] => {
     return new Lexer(source).all();
@@ -70,4 +69,19 @@ it("should parse directive if ended with space", function () {
 
     expect(tokens[0]).toHaveProperty("type", TokenType.Directive);
     expect(tokens[0]).toHaveProperty("raw", "@csrf");
+});
+
+it("should parse multiple no args directives", function () {
+    const tokens = lex("@csrf is good @csrf");
+
+    expect(tokens).toHaveLength(3);
+
+    expect(tokens[0]).toHaveProperty("type", TokenType.Directive);
+    expect(tokens[0]).toHaveProperty("raw", "@csrf");
+
+    expect(tokens[1]).toHaveProperty("type", TokenType.Literal);
+    expect(tokens[1]).toHaveProperty("raw", " is good ");
+
+    expect(tokens[2]).toHaveProperty("type", TokenType.Directive);
+    expect(tokens[2]).toHaveProperty("raw", "@csrf");
 });
