@@ -209,14 +209,21 @@ export class Parser {
     verbatim(): VerbatimNode { 
         let code: string = ''
 
+        if (this.current.type === TokenType.Directive && this.current.raw === '@endverbatim') {
+            return new VerbatimNode(code)
+        } else {
+            code += this.current.raw
+        }
+
         while (true) {
             if (this.i >= this.tokens.length) {
                 break
             }
-
+            
             this.read()
 
-            if (this.current instanceof DirectiveNode && this.current.directive === 'endverbatim') {
+            if (this.current.type === TokenType.Directive && this.current.raw === '@endverbatim') {
+                this.read()
                 break
             }
 

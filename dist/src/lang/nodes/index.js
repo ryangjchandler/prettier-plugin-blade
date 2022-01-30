@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CommentNode = exports.DirectivePairNode = exports.LiteralNode = exports.DirectiveNode = exports.EchoNode = exports.EchoType = void 0;
+exports.CommentNode = exports.VerbatimNode = exports.DirectivePairNode = exports.LiteralNode = exports.DirectiveNode = exports.EchoNode = exports.EchoType = void 0;
 const prettier_1 = require("prettier");
 const utils_1 = require("../../utils");
 const { builders: { group, softline, indent, line, hardline }, } = prettier_1.doc;
@@ -84,6 +84,22 @@ class DirectivePairNode {
     }
 }
 exports.DirectivePairNode = DirectivePairNode;
+class VerbatimNode {
+    constructor(content) {
+        this.content = content;
+    }
+    toDoc() {
+        return group([
+            '@verbatim',
+            this.toString(),
+            '@endverbatim',
+        ]);
+    }
+    toString() {
+        return this.content;
+    }
+}
+exports.VerbatimNode = VerbatimNode;
 class CommentNode {
     constructor(code, content) {
         this.code = code;

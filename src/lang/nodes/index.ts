@@ -107,9 +107,7 @@ export class VerbatimNode implements Node {
     toDoc(): Doc {
         return group([
             '@verbatim',
-            hardline,
             this.toString(),
-            hardline,
             '@endverbatim',
         ])
     }
