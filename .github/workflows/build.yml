@@ -21,3 +21,10 @@ jobs:
       - run: |
           tsc --build --clean
           tsc --build
+
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: |
+            chore: build
+          branch: main
+          file_pattern: dist/
