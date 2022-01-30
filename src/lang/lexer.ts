@@ -14,7 +14,7 @@ export class Lexer {
     private buffer: string = "";
     constructor(source: string) {
         this.source = source
-            .replace(/<\?=\s+(\".+\")\s+\?\>/, "{{!! $1 !!}}")
+            .replace(/<\?=\s+(\".+\")\s+\?\>/, "{!! $1 !!}")
             .replace(/(\<\?(php)?\n)(.+)(\n\s+\?\>)/gm, "@php$3 @endphp")
             .replace(/\r\n|\r|\n/, "\n")
             .split("");
@@ -32,9 +32,7 @@ export class Lexer {
                 this.tokens.push(this.comment());
             } else if (this.previous !== "@" && this.collect(2) === "{{") {
                 this.tokens.push(this.echo());
-            }
-
-            if (this.previous !== "@" && this.collect(3) === "{!!") {
+            } else if (this.previous !== "@" && this.collect(3) === "{!!") {
                 this.tokens.push(this.rawEcho());
             } else if (
                 this.previous !== "@" &&

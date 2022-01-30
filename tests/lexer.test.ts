@@ -85,3 +85,17 @@ it("should parse multiple no args directives", function () {
     expect(tokens[2]).toHaveProperty("type", TokenType.Directive);
     expect(tokens[2]).toHaveProperty("raw", "@csrf");
 });
+
+it("can generate raw echo tokens when wrapped in parenthesis", () => {
+    const raw = lex("{{!! 'yes' !!}}")[0];
+
+    expect(raw).toHaveProperty("type", TokenType.RawEcho);
+    expect(raw).toHaveProperty("raw", "{!! 'yes' !!}");
+});
+
+it("can generate echo token when starting with double negation", () => {
+    const raw = lex("{{!!$value}}")[0];
+
+    expect(raw).toHaveProperty("type", TokenType.Echo);
+    expect(raw).toHaveProperty("raw", "{{!!$value}}");
+});
