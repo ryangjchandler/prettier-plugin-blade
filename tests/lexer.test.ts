@@ -1,106 +1,77 @@
-import { Lexer } from "../src/lang/lexer";
-import { Token, TokenType } from "../src/lang/token";
+import { BladeLexer, Token } from "../src/lang/lexer";
+import {ILexingResult, IToken} from "chevrotain";
+import {TokenType} from "../src/lang/token";
 
-const lex = (source: string): Token[] => {
-    return new Lexer(source).all();
+const lex = (source: string): IToken[] => {
+    return BladeLexer.tokenize(source).tokens
 };
 
-it("can generate echo tokens", () => {
-    const echo = lex("{{ $test }}")[0];
+it("should generate echo tokens", () => {
+    const tokens = lex("{{ $test }}");
 
-    expect(echo).toHaveProperty("type", TokenType.Echo);
-    expect(echo).toHaveProperty("raw", "{{ $test }}");
+    expect(tokens[0]).toHaveProperty("tokenType.name", Token.Echo)
+    expect(tokens[0]).toHaveProperty("image", "{{ $test }}")
 
-    const spaceless = lex("{{$test}}")[0];
-
-    expect(spaceless).toHaveProperty("type", TokenType.Echo);
-    expect(spaceless).toHaveProperty("raw", "{{$test}}");
+    expect(tokens).toHaveLength(1)
 });
 
-it("can generate raw echo tokens", () => {
-    const raw = lex("{!! $test !!}")[0];
+it('should generate echo tokens when no spaces', function () {
+    const tokens = lex("{{$coolStuff}}");
 
-    expect(raw).toHaveProperty("type", TokenType.RawEcho);
-    expect(raw).toHaveProperty("raw", "{!! $test !!}");
+    expect(tokens[0]).toHaveProperty("tokenType.name", Token.Echo)
+    expect(tokens[0]).toHaveProperty("image", "{{$coolStuff}}")
 
-    const spaceless = lex("{!!$test!!}")[0];
-
-    expect(spaceless).toHaveProperty("type", TokenType.RawEcho);
-    expect(spaceless).toHaveProperty("raw", "{!!$test!!}");
+    expect(tokens).toHaveLength(1)
 });
 
-it("can generate directive tokens", () => {
-    const tokens = lex(
-        "@php @if(true) @else() @if  (true) @if(auth()) @if(')' === '@test')"
-    ).filter((token) => token.type !== TokenType.Literal && !!token.raw.trim());
+it("should generate raw echo tokens", () => {
+    const tokens = lex("{!! $test !!}");
 
-    expect(tokens[0]).toHaveProperty("type", TokenType.Directive);
-    expect(tokens[0]).toHaveProperty("raw", "@php");
+    expect(tokens[0]).toHaveProperty("tokenType.name", Token.RawEcho)
+    expect(tokens[0]).toHaveProperty("image", "{!! $test !!}")
 
-    expect(tokens[1]).toHaveProperty("type", TokenType.Directive);
-    expect(tokens[1]).toHaveProperty("raw", "@if(true)");
-
-    expect(tokens[2]).toHaveProperty("type", TokenType.Directive);
-    expect(tokens[2]).toHaveProperty("raw", "@else()");
-
-    expect(tokens[3]).toHaveProperty("type", TokenType.Directive);
-    expect(tokens[3]).toHaveProperty("raw", "@if  (true)");
-
-    expect(tokens[4]).toHaveProperty("type", TokenType.Directive);
-    expect(tokens[4]).toHaveProperty("raw", "@if(auth())");
-
-    expect(tokens[5]).toHaveProperty("type", TokenType.Directive);
-    expect(tokens[5]).toHaveProperty("raw", "@if(auth()) @if(')' === '@test')");
-
-    expect(tokens).toHaveLength(6);
+    expect(tokens).toHaveLength(1)
 });
 
-it("can generate comment tokens", () => {
-    const raw = lex("{{-- $test --}}")[0];
+it("should generate raw echo tokens without spaces", () => {
+    const tokens = lex("{!!$something!!}");
 
-    expect(raw).toHaveProperty("type", TokenType.Comment);
-    expect(raw).toHaveProperty("raw", "{{-- $test --}}");
+    expect(tokens[0]).toHaveProperty("tokenType.name", Token.RawEcho)
+    expect(tokens[0]).toHaveProperty("image", "{!!$something!!}")
 
-    const spaceless = lex("{{--$test--}}")[0];
+    expect(tokens).toHaveLength(1)
+});
 
-    expect(spaceless).toHaveProperty("type", TokenType.Comment);
-    expect(spaceless).toHaveProperty("raw", "{{--$test--}}");
+
+it("should not generate echo token if no ending braces", () => {
+    const tokens = lex("{{value");
+
+    expect(tokens).toHaveLength(0)
+});
+
+it("should generate echo token when starting with double negation", () => {
+    const tokens = lex("{{!!$value}}");
+
+    expect(tokens[0]).toHaveProperty("tokenType.name", TokenType.Echo);
+    expect(tokens[0]).toHaveProperty("image", "{{!!$value}}");
+
+    expect(tokens).toHaveLength(1)
+});
+
+it("should generate raw echo tokens when wrapped in parenthesis", () => {
+    const tokens = lex("{{!! 'yes' !!}}");
+
+    expect(tokens[0]).toHaveProperty("tokenType.name", TokenType.RawEcho);
+    expect(tokens[0]).toHaveProperty("image", "{!! 'yes' !!}");
+
+    expect(tokens).toHaveLength(1)
 });
 
 it("should parse directive if ended with space", function () {
     const tokens = lex("@csrf ");
 
+    expect(tokens[0]).toHaveProperty("tokenType.name", TokenType.Directive);
+    expect(tokens[0]).toHaveProperty("image", "@csrf");
+
     expect(tokens).toHaveLength(1);
-
-    expect(tokens[0]).toHaveProperty("type", TokenType.Directive);
-    expect(tokens[0]).toHaveProperty("raw", "@csrf");
-});
-
-it("should parse multiple no args directives", function () {
-    const tokens = lex("@csrf is good @csrf");
-
-    expect(tokens).toHaveLength(3);
-
-    expect(tokens[0]).toHaveProperty("type", TokenType.Directive);
-    expect(tokens[0]).toHaveProperty("raw", "@csrf");
-
-    expect(tokens[1]).toHaveProperty("type", TokenType.Literal);
-    expect(tokens[1]).toHaveProperty("raw", " is good ");
-
-    expect(tokens[2]).toHaveProperty("type", TokenType.Directive);
-    expect(tokens[2]).toHaveProperty("raw", "@csrf");
-});
-
-it("can generate raw echo tokens when wrapped in parenthesis", () => {
-    const raw = lex("{{!! 'yes' !!}}")[0];
-
-    expect(raw).toHaveProperty("type", TokenType.RawEcho);
-    expect(raw).toHaveProperty("raw", "{!! 'yes' !!}");
-});
-
-it("can generate echo token when starting with double negation", () => {
-    const raw = lex("{{!!$value}}")[0];
-
-    expect(raw).toHaveProperty("type", TokenType.Echo);
-    expect(raw).toHaveProperty("raw", "{{!!$value}}");
 });

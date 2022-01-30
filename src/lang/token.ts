@@ -1,10 +1,10 @@
 export enum TokenType {
-    Directive,
-    Echo,
-    RawEcho,
-    Literal,
-    Eof,
-    Comment,
+    Directive = "Directive",
+    Echo = "Echo",
+    RawEcho = "RawEcho",
+    Literal = "Literal",
+    Eof = "Eof",
+    Comment = "Comment",
 }
 
 export class Token {

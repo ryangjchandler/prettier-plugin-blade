@@ -1,5 +1,5 @@
 import { AstPath, format } from "prettier";
-import { Lexer } from "./lang/lexer";
+import { LexerOld } from "./lang/lexerOld";
 import { Parser } from "./lang/parser";
 import { Plugin, Doc } from "prettier";
 import { Node } from "./lang/nodes";
@@ -21,7 +21,7 @@ const plugin: Plugin = {
             parse: function (text: string, _, options) {
                 setOptions(options)
 
-                const lexer = new Lexer(text);
+                const lexer = new LexerOld(text);
                 const tokens = lexer.all();
 
                 return new Parser(tokens).parse();
