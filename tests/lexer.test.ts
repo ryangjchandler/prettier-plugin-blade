@@ -48,11 +48,11 @@ it("can generate directive tokens", () => {
 
     expect(tokens[4]).toHaveProperty("type", TokenType.Directive);
     expect(tokens[4]).toHaveProperty("raw", "@if(auth())");
-    
+
     expect(tokens[5]).toHaveProperty("type", TokenType.Directive);
     expect(tokens[5]).toHaveProperty("raw", "@if(auth()) @if(')' === '@test')");
 
-    expect(tokens).toHaveLength(6)
+    expect(tokens).toHaveLength(6);
 });
 
 it("can generate comment tokens", () => {
