@@ -8,7 +8,10 @@ import {
     Node,
     EchoType,
     CommentNode,
+    VerbatimNode,
 } from "./nodes";
+import { ParserOptions } from "prettier";
+import { setOptions } from "../utils";
 
 const STATIC_BLOCK_DIRECTIVES = [
     "if",
@@ -129,7 +132,7 @@ export class Parser {
         return node;
     }
 
-    directive(): DirectiveNode | DirectivePairNode {
+    directive(): DirectiveNode | DirectivePairNode | VerbatimNode {
         let directiveName = this.current.raw.substring(
             this.current.raw.indexOf("@") + 1
         );
@@ -162,6 +165,10 @@ export class Parser {
 
         if (!isBlockDirective(directive)) {
             return directive;
+        }
+
+        if (directive.directive === 'verbatim') {
+            return this.verbatim()
         }
 
         let children = [];
@@ -199,6 +206,33 @@ export class Parser {
         }
 
         return new Nodes.DirectivePairNode(directive, close, children);
+    }
+
+    verbatim(): VerbatimNode { 
+        let code: string = ''
+
+        if (this.current.type === TokenType.Directive && this.current.raw === '@endverbatim') {
+            return new VerbatimNode(code)
+        } else {
+            code += this.current.raw
+        }
+
+        while (true) {
+            if (this.i >= this.tokens.length) {
+                break
+            }
+            
+            this.read()
+
+            if (this.current.type === TokenType.Directive && this.current.raw === '@endverbatim') {
+                this.read()
+                break
+            }
+
+            code += this.current.raw
+        }
+
+        return new VerbatimNode(code)
     }
 
     read() {

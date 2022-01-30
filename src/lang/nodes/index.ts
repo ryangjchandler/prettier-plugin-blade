@@ -1,6 +1,6 @@
 import { doc, format } from "prettier";
 import { builders } from "prettier/doc";
-import { formatAsPhp } from "../../utils";
+import { formatAsHtml, formatAsPhp } from "../../utils";
 import Doc = builders.Doc;
 
 const {
@@ -98,6 +98,26 @@ export class DirectivePairNode implements Node {
         return `${this.open.toString()}${this.children
             .map((child) => child.toString())
             .join()}${this.close.toString()}`;
+    }
+}
+
+export class VerbatimNode implements Node {
+    constructor(private content: string) {}
+
+    toDoc(): Doc {
+        // We're doing a bit of trick here where we replace the verbatim tags after formatting as HTML
+        // so we get correct indentation.
+        const fakeHtml = formatAsHtml(`
+            <verbatim-block>
+                ${this.toString()}
+            </verbatim-block>
+        `)
+
+        return fakeHtml.replace('<verbatim-block>', '@verbatim').replace('</verbatim-block>', '@endverbatim')
+    }
+
+    toString(): string {
+        return this.content
     }
 }
 

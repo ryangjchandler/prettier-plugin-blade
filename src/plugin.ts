@@ -3,6 +3,7 @@ import { Lexer } from "./lang/lexer";
 import { Parser } from "./lang/parser";
 import { Plugin, Doc } from "prettier";
 import { Node } from "./lang/nodes";
+import { formatAsHtml, setOptions } from "./utils";
 
 const tw = require("prettier-plugin-tailwindcss");
 
@@ -17,7 +18,9 @@ const plugin: Plugin = {
     ],
     parsers: {
         blade: {
-            parse: function (text: string) {
+            parse: function (text: string, _, options) {
+                setOptions(options)
+
                 const lexer = new Lexer(text);
                 const tokens = lexer.all();
 
@@ -28,11 +31,7 @@ const plugin: Plugin = {
             astFormat: "blade",
             preprocess: function (text: string) {
                 return [
-                    (t: string) =>
-                        format(t, {
-                            parser: "html",
-                            plugins: [{ parsers: { html: tw.parsers.html } }],
-                        }),
+                    (t: string) => formatAsHtml(t),
                 ].reduce((t, callback) => callback(t), text);
             },
         },
@@ -50,6 +49,9 @@ const plugin: Plugin = {
             },
         },
     },
+    defaultOptions: {
+        tabWidth: 4,
+    }
 };
 
 export = plugin;

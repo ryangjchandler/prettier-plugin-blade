@@ -129,6 +129,9 @@ class Parser {
         if (!isBlockDirective(directive)) {
             return directive;
         }
+        if (directive.directive === 'verbatim') {
+            return this.verbatim();
+        }
         let children = [];
         let close = null;
         while (this.current.type !== token_1.TokenType.Eof) {
@@ -148,6 +151,27 @@ class Parser {
             throw new Error(`Could not find "@end..." directive for "@${directive.directive}" defined on line ${directive.line}.`);
         }
         return new Nodes.DirectivePairNode(directive, close, children);
+    }
+    verbatim() {
+        let code = '';
+        if (this.current.type === token_1.TokenType.Directive && this.current.raw === '@endverbatim') {
+            return new nodes_1.VerbatimNode(code);
+        }
+        else {
+            code += this.current.raw;
+        }
+        while (true) {
+            if (this.i >= this.tokens.length) {
+                break;
+            }
+            this.read();
+            if (this.current.type === token_1.TokenType.Directive && this.current.raw === '@endverbatim') {
+                this.read();
+                break;
+            }
+            code += this.current.raw;
+        }
+        return new nodes_1.VerbatimNode(code);
     }
     read() {
         this.i += 1;
