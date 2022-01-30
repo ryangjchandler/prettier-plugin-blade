@@ -101,6 +101,24 @@ export class DirectivePairNode implements Node {
     }
 }
 
+export class VerbatimNode implements Node {
+    constructor(private content: string) {}
+
+    toDoc(): Doc {
+        return group([
+            '@verbatim',
+            hardline,
+            this.toString(),
+            hardline,
+            '@endverbatim',
+        ])
+    }
+
+    toString(): string {
+        return this.content
+    }
+}
+
 export class CommentNode implements Node {
     constructor(private code: string, private content: string) {}
 

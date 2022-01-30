@@ -8,6 +8,7 @@ import {
     Node,
     EchoType,
     CommentNode,
+    VerbatimNode,
 } from "./nodes";
 
 const STATIC_BLOCK_DIRECTIVES = [
@@ -129,7 +130,7 @@ export class Parser {
         return node;
     }
 
-    directive(): DirectiveNode | DirectivePairNode {
+    directive(): DirectiveNode | DirectivePairNode | VerbatimNode {
         let directiveName = this.current.raw.substring(
             this.current.raw.indexOf("@") + 1
         );
@@ -162,6 +163,10 @@ export class Parser {
 
         if (!isBlockDirective(directive)) {
             return directive;
+        }
+
+        if (directive.directive === 'verbatim') {
+            return this.verbatim()
         }
 
         let children = [];
@@ -199,6 +204,26 @@ export class Parser {
         }
 
         return new Nodes.DirectivePairNode(directive, close, children);
+    }
+
+    verbatim(): VerbatimNode { 
+        let code: string = ''
+
+        while (true) {
+            if (this.i >= this.tokens.length) {
+                break
+            }
+
+            this.read()
+
+            if (this.current instanceof DirectiveNode && this.current.directive === 'endverbatim') {
+                break
+            }
+
+            code += this.current.raw
+        }
+
+        return new VerbatimNode(code)
     }
 
     read() {
