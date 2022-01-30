@@ -15,7 +15,7 @@ export class Lexer {
     constructor(source: string) {
         this.source = source
             .replace(/<\?=\s+(\".+\")\s+\?\>/, "{!! $1 !!}")
-            .replace(/(\<\?(php)?\n)(.+)(\n\s+\?\>)/gm, "@php$3 @endphp")
+            .replace(/(\<\?(?:php)?\s)(.+)\s+(\?\>)/gm, "@php\n$2\n@endphp")
             .replace(/\r\n|\r|\n/, "\n")
             .split("");
     }
