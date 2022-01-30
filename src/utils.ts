@@ -1,6 +1,14 @@
 import { format } from "prettier";
 // @ts-ignore
 import php from "@prettier/plugin-php/standalone";
+const tw = require('prettier-plugin-tailwindcss')
+
+export const formatAsHtml = (source: string): string => {
+    return format(source, {
+        parser: "html",
+        plugins: [{ parsers: { html: tw.parsers.html } }],
+    })
+}
 
 export const formatAsPhp = (source: string): string => {
     let manipulated = source;

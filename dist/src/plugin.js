@@ -1,7 +1,7 @@
 "use strict";
-const prettier_1 = require("prettier");
 const lexer_1 = require("./lang/lexer");
 const parser_1 = require("./lang/parser");
+const utils_1 = require("./utils");
 const tw = require("prettier-plugin-tailwindcss");
 const plugin = {
     languages: [
@@ -24,10 +24,7 @@ const plugin = {
             astFormat: "blade",
             preprocess: function (text) {
                 return [
-                    (t) => (0, prettier_1.format)(t, {
-                        parser: "html",
-                        plugins: [{ parsers: { html: tw.parsers.html } }],
-                    }),
+                    (t) => (0, utils_1.formatAsHtml)(t),
                 ].reduce((t, callback) => callback(t), text);
             },
         },

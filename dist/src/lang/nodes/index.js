@@ -89,11 +89,14 @@ class VerbatimNode {
         this.content = content;
     }
     toDoc() {
-        return group([
-            '@verbatim',
-            this.toString(),
-            '@endverbatim',
-        ]);
+        // We're doing a bit of trick here where we replace the verbatim tags after formatting as HTML
+        // so we get correct indentation.
+        const fakeHtml = (0, utils_1.formatAsHtml)(`
+            <verbatim-block>
+                ${this.toString()}
+            </verbatim-block>
+        `);
+        return fakeHtml.replace('<verbatim-block>', '@verbatim').replace('</verbatim-block>', '@endverbatim');
     }
     toString() {
         return this.content;
