@@ -14,7 +14,8 @@ const plugin = {
     ],
     parsers: {
         blade: {
-            parse: function (text) {
+            parse: function (text, _, options) {
+                (0, utils_1.setOptions)(options);
                 const lexer = new lexer_1.Lexer(text);
                 const tokens = lexer.all();
                 return new parser_1.Parser(tokens).parse();
@@ -40,5 +41,8 @@ const plugin = {
             },
         },
     },
+    defaultOptions: {
+        tabWidth: 4,
+    }
 };
 module.exports = plugin;

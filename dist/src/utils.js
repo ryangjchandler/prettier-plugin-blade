@@ -3,15 +3,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatAsPhp = exports.formatAsHtml = void 0;
+exports.formatAsPhp = exports.formatAsHtml = exports.setOptions = void 0;
 const prettier_1 = require("prettier");
 // @ts-ignore
 const standalone_1 = __importDefault(require("@prettier/plugin-php/standalone"));
 const tw = require('prettier-plugin-tailwindcss');
+let pluginOptions;
+const setOptions = (options) => {
+    pluginOptions = options;
+};
+exports.setOptions = setOptions;
 const formatAsHtml = (source) => {
     return (0, prettier_1.format)(source, {
         parser: "html",
         plugins: [{ parsers: { html: tw.parsers.html } }],
+        tabWidth: pluginOptions === null || pluginOptions === void 0 ? void 0 : pluginOptions.tabWidth
     });
 };
 exports.formatAsHtml = formatAsHtml;

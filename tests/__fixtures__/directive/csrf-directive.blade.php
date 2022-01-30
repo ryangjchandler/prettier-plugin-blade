@@ -5,7 +5,7 @@
 </form>
 ----
 <form method="POST" action="/profile">
-  @csrf
+    @csrf
 
-  <input type="email" />
+    <input type="email" />
 </form>

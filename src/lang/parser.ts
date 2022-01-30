@@ -10,6 +10,8 @@ import {
     CommentNode,
     VerbatimNode,
 } from "./nodes";
+import { ParserOptions } from "prettier";
+import { setOptions } from "../utils";
 
 const STATIC_BLOCK_DIRECTIVES = [
     "if",
