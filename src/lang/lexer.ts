@@ -1,4 +1,4 @@
-import {createToken, createTokenInstance, Lexer} from "chevrotain";
+import {createToken, createTokenInstance, CstParser, Lexer, Rule} from "chevrotain";
 import {CustomPatternMatcherReturn} from "@chevrotain/types";
 
 export enum Token {
@@ -14,53 +14,44 @@ enum Mode {
     BLADE = "blade_mode"
 }
 
-const Literal = createToken({
-    name: Token.Literal,
-    pattern: /[^}!]+/,
-})
-
-
-const Echo = createToken({
+export const Echo = createToken({
     name: Token.Echo,
     pattern: /(@)?{{\s*(.+?)\s*[^!]}}(\r?\n)?/,
     start_chars_hint: ["{"]
 })
 
-const RawEcho = createToken({
+export const RawEcho = createToken({
     name: Token.RawEcho,
     pattern: /(@)?{!!\s*(.+?)\s*!!}(\r?\n)?/,
     start_chars_hint: ["{"]
 })
 
-const Comment = createToken({
+export const Comment = createToken({
     name: Token.Comment,
     pattern: /{{--(.*?)--}}/,
     start_chars_hint: ["{"]
 })
 
-const Directive = createToken({
-    name: Token.Directive,
-    pattern: /@\w+/,
-    start_chars_hint: ["@"]
-})
 
-const DirectiveWithArgs = createToken({
+export const DirectiveWithArgs = createToken({
     name: Token.Directive,
     pattern: {
         exec(text, startOffset): CustomPatternMatcherReturn | null {
             let endOffset = startOffset
-            // Skip if escaped directive
-            if (text.startsWith("@@")) {
-                return null
-            }
 
             // Check if directive
-            if (!text.startsWith("@")) {
+            let charCode = text.charAt(endOffset)
+            if (!charCode.startsWith("@")) {
                 return null
             }
-            endOffset++;
 
-            let charCode = text.charAt(endOffset)
+            // Check if escaped directive
+            if (text.charAt(endOffset - 1) === '@' || text.charAt(endOffset + 1) === '@') {
+                return null
+            }
+
+            endOffset++;
+            charCode = text.charAt(endOffset)
             // Consume name of directive
             while (/\w/.exec(charCode)) {
                 endOffset++;
@@ -121,15 +112,19 @@ const DirectiveWithArgs = createToken({
     line_breaks: false
 })
 
+export const Literal = createToken({
+    name: Token.Literal,
+    pattern: /./,
+})
 
-const allTokens = {
+export const allTokens = {
     modes: {
         blade_mode: [
             Comment,
             RawEcho,
             Echo,
             DirectiveWithArgs,
-            //Directive,
+            Literal,
         ],
     },
     defaultMode: Mode.BLADE
