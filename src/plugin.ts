@@ -1,9 +1,10 @@
 import { AstPath, format } from "prettier";
 import { LexerOld } from "./lang/lexerOld";
-import { Parser } from "./lang/parser";
+import { OldParser } from "./lang/oldParser";
 import { Plugin, Doc } from "prettier";
 import { Node } from "./lang/nodes";
 import { formatAsHtml, setOptions } from "./utils";
+import {BladeLexer} from "./lang/lexer";
 
 const tw = require("prettier-plugin-tailwindcss");
 
@@ -21,10 +22,10 @@ const plugin: Plugin = {
             parse: function (text: string, _, options) {
                 setOptions(options)
 
-                const lexer = new LexerOld(text);
-                const tokens = lexer.all();
+                const lexer = BladeLexer.tokenize(text);
+                const tokens = lexer.tokens
 
-                return new Parser(tokens).parse();
+                return new OldParser(tokens).parse();
             },
             locStart: () => 0,
             locEnd: () => 0,
