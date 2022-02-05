@@ -2,10 +2,8 @@ import { doc } from "prettier";
 import { builders } from "prettier/doc";
 import { formatAsHtml, formatAsPhp } from "../../utils";
 import Doc = builders.Doc;
-
-const {
-    builders: { group, hardline },
-} = doc;
+import group = doc.builders.group;
+import hardline = doc.builders.hardline;
 
 export interface Node {
     toDoc(): Doc[] | Doc | string;
@@ -29,7 +27,7 @@ export namespace EchoType {
 }
 
 export class DocumentNode implements Node {
-    constructor(private children: Node[]) {}
+    constructor(public children: Node[]) {}
 
     toDoc(): Doc[] {
         return this.children.map((child) => child.toDoc());
@@ -86,9 +84,9 @@ export class LiteralNode implements Node {
 
 export class DirectivePairNode implements Node {
     constructor(
-        private open: DirectiveNode,
-        private close: DirectiveNode,
-        private children: Node[]
+        public open: DirectiveNode,
+        public close: DirectiveNode,
+        public children: Node[]
     ) {}
 
     toDoc(): Doc {

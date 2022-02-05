@@ -9,11 +9,107 @@ export enum Token {
     Comment = "Comment",
     EscapedEcho = "EscapedEcho",
     EscapedRawEcho = "EscapedRawEcho",
+    EndDirective = "EndDirective",
 }
 
 enum Mode {
     PHP = "php_mode",
     BLADE = "blade_mode",
+}
+
+function matchDirective(text: string, startOffset: number) {
+    let endOffset = startOffset;
+
+    // Check if directive
+    let charCode = text.charAt(endOffset);
+    if (!charCode.startsWith("@")) {
+        return null;
+    }
+
+    // Check if escaped directive
+    if (
+        text.charAt(endOffset - 1) === "@" ||
+        text.charAt(endOffset + 1) === "@"
+    ) {
+        return null;
+    }
+
+    endOffset++;
+    charCode = text.charAt(endOffset);
+    let directiveName = charCode;
+    // Consume name of directive
+    while (/\w/.exec(charCode)) {
+        endOffset++;
+        charCode = text.charAt(endOffset);
+        directiveName += charCode
+    }
+
+    // Consume spaces
+    let possibleEndOffset = endOffset;
+    charCode = text.charAt(possibleEndOffset);
+    while ([" "].includes(charCode)) {
+        possibleEndOffset++;
+        charCode = text.charAt(possibleEndOffset);
+    }
+
+    // Check if next char is an open parenthesis
+    charCode = text.charAt(possibleEndOffset);
+    if (charCode == "(") {
+        let parentheses = 1;
+        let inSingleComment = false;
+        let inDoubleComment = false;
+
+        do {
+            possibleEndOffset++;
+            charCode = text.charAt(possibleEndOffset);
+
+            if (
+                charCode === "'" &&
+                text.charAt(possibleEndOffset - 1) !== "\\"
+            ) {
+                inSingleComment = !inSingleComment;
+                continue;
+            }
+
+            if (inSingleComment) {
+                continue;
+            }
+
+            if (
+                charCode === '"' &&
+                text.charAt(possibleEndOffset - 1) !== "\\"
+            ) {
+                inDoubleComment = !inDoubleComment;
+                continue;
+            }
+
+            if (inDoubleComment) {
+                continue;
+            }
+
+            if (charCode === "(") {
+                parentheses++;
+            } else if (charCode === ")") {
+                parentheses--;
+            }
+        } while (parentheses > 0);
+
+        endOffset = ++possibleEndOffset;
+    }
+
+    const content = text.substring(startOffset, endOffset);
+
+    // If content is only directive then ignore
+    if (content === "@") {
+        return null;
+    }
+
+    return {
+        directiveName: directiveName,
+        matches: text.substring(startOffset, endOffset),
+        startOffset,
+        endOffset,
+    }
 }
 
 export const Echo = createToken({
@@ -49,97 +145,42 @@ export const EscapedRawEcho = createToken({
 export const DirectiveWithArgs = createToken({
     name: Token.Directive,
     pattern: {
-        exec(text, startOffset): CustomPatternMatcherReturn | null {
-            let endOffset = startOffset;
+        exec(text: string, startOffset: number): CustomPatternMatcherReturn | null {
+            const result = matchDirective(text, startOffset);
 
-            // Check if directive
-            let charCode = text.charAt(endOffset);
-            if (!charCode.startsWith("@")) {
+            if (result === null) {
                 return null;
             }
 
-            // Check if escaped directive
-            if (
-                text.charAt(endOffset - 1) === "@" ||
-                text.charAt(endOffset + 1) === "@"
-            ) {
-                return null;
-            }
-
-            endOffset++;
-            charCode = text.charAt(endOffset);
-            // Consume name of directive
-            while (/\w/.exec(charCode)) {
-                endOffset++;
-                charCode = text.charAt(endOffset);
-            }
-
-            // Consume spaces
-            let possibleEndOffset = endOffset;
-            charCode = text.charAt(possibleEndOffset);
-            while ([" "].includes(charCode)) {
-                possibleEndOffset++;
-                charCode = text.charAt(possibleEndOffset);
-            }
-
-            // Check if next char is an open parenthesis
-            charCode = text.charAt(possibleEndOffset);
-            if (charCode == "(") {
-                let parentheses = 1;
-                let inSingleComment = false;
-                let inDoubleComment = false;
-
-                do {
-                    possibleEndOffset++;
-                    charCode = text.charAt(possibleEndOffset);
-
-                    if (
-                        charCode === "'" &&
-                        text.charAt(possibleEndOffset - 1) !== "\\"
-                    ) {
-                        inSingleComment = !inSingleComment;
-                        continue;
-                    }
-
-                    if (inSingleComment) {
-                        continue;
-                    }
-
-                    if (
-                        charCode === '"' &&
-                        text.charAt(possibleEndOffset - 1) !== "\\"
-                    ) {
-                        inDoubleComment = !inDoubleComment;
-                        continue;
-                    }
-
-                    if (inDoubleComment) {
-                        continue;
-                    }
-
-                    if (charCode === "(") {
-                        parentheses++;
-                    } else if (charCode === ")") {
-                        parentheses--;
-                    }
-                } while (parentheses > 0);
-
-                endOffset = ++possibleEndOffset;
-            }
-
-            const content = text.substring(startOffset, endOffset);
-
-            // If content is only directive then ignore
-            if (content === "@") {
-                return null;
-            }
-
-            return [text.substring(startOffset, endOffset)];
+            return [result.matches]
         },
     },
     start_chars_hint: ["@"],
     line_breaks: false,
 });
+
+export const EndDirectiveWithArgs = createToken({
+    name: Token.EndDirective,
+    pattern: {
+        exec(text: string, startOffset: number): CustomPatternMatcherReturn | null {
+            const result = matchDirective(text, startOffset);
+
+            if (result === null) {
+                return null;
+            }
+
+            // Check if directive is an end directive
+            if (!result.directiveName.startsWith('end')) {
+                return null;
+            }
+
+            return [result.matches]
+        },
+    },
+    start_chars_hint: ["@"],
+    line_breaks: false,
+});
+
 
 export const Literal = createToken({
     name: Token.Literal,
@@ -152,6 +193,7 @@ export const allTokens = {
             Comment,
             RawEcho,
             Echo,
+            EndDirectiveWithArgs,
             DirectiveWithArgs,
             EscapedEcho,
             EscapedRawEcho,

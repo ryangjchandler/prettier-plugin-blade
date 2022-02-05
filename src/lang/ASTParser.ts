@@ -4,16 +4,16 @@ import {
     CommentCstChildren,
     ContentCstChildren,
     DirectiveCstChildren,
-    EchoCstChildren,
+    EchoCstChildren, EndDirectiveCstChildren,
     EscapedEchoCstChildren,
     EscapedRawEchoCstChildren,
     ICstNodeVisitor,
-    LiteralCstChildren,
+    LiteralCstChildren, PairDirectiveCstChildren,
     RawEchoCstChildren,
 } from "./blade_cst";
 import {
     CommentNode,
-    DirectiveNode,
+    DirectiveNode, DirectivePairNode,
     DocumentNode,
     EchoNode,
     EchoType,
@@ -48,7 +48,8 @@ export class BladeToAstVisitor
             children.rawEcho ??
             children.comment ??
             children.escapedEcho ??
-            children.escapedRawEcho;
+            children.escapedRawEcho ??
+            children.pairDirective;
 
         if (child === undefined) {
             throw new Error("Content should always have at least 1 child.");
@@ -129,6 +130,24 @@ export class BladeToAstVisitor
         const content = children.EscapedRawEcho[0].image;
 
         return new LiteralNode(content);
+    }
+
+    pairDirective(children: PairDirectiveCstChildren, param?: any): Node {
+        const openDirective = this.visit(children.startDirective)
+        const closeDirective = this.visit(children.endDirective)
+        const content = children.content?.map((content: any) => {
+            return this.visit(content);
+        });
+
+        return new DirectivePairNode(
+            openDirective,
+            closeDirective,
+            content ?? [],
+        )
+    }
+
+    endDirective(children: EndDirectiveCstChildren, param?: any): Node {
+        return this.directive({Directive: children.EndDirective}, param);
     }
 }
 
