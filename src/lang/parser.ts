@@ -4,7 +4,8 @@ import {
     BladeLexer,
     Comment,
     DirectiveWithArgs,
-    Echo, EndDirectiveWithArgs,
+    Echo,
+    EndDirectiveWithArgs,
     EscapedEcho,
     EscapedRawEcho,
     Literal,
@@ -53,22 +54,22 @@ class BladeToCSTParser extends CstParser {
     });
 
     private directive = this.RULE("directive", () => {
-        this.CONSUME(DirectiveWithArgs)
+        this.CONSUME(DirectiveWithArgs);
     });
 
     private endDirective = this.RULE("endDirective", () => {
-        this.CONSUME(EndDirectiveWithArgs)
+        this.CONSUME(EndDirectiveWithArgs);
     });
 
     private pairDirective = this.RULE("pairDirective", () => {
-        this.SUBRULE(this.directive, {LABEL: "startDirective"})
+        this.SUBRULE(this.directive, { LABEL: "startDirective" });
         this.OPTION(() => {
             this.MANY(() => {
-                this.SUBRULE(this.content)
-            })
-        })
-        this.SUBRULE2(this.endDirective, {LABEL: "endDirective"})
-    })
+                this.SUBRULE(this.content);
+            });
+        });
+        this.SUBRULE2(this.endDirective, { LABEL: "endDirective" });
+    });
 
     private literal = this.RULE("literal", () => {
         this.AT_LEAST_ONE(() => {

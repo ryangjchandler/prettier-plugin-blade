@@ -4,16 +4,19 @@ import {
     CommentCstChildren,
     ContentCstChildren,
     DirectiveCstChildren,
-    EchoCstChildren, EndDirectiveCstChildren,
+    EchoCstChildren,
+    EndDirectiveCstChildren,
     EscapedEchoCstChildren,
     EscapedRawEchoCstChildren,
     ICstNodeVisitor,
-    LiteralCstChildren, PairDirectiveCstChildren,
+    LiteralCstChildren,
+    PairDirectiveCstChildren,
     RawEchoCstChildren,
 } from "./blade_cst";
 import {
     CommentNode,
-    DirectiveNode, DirectivePairNode,
+    DirectiveNode,
+    DirectivePairNode,
     DocumentNode,
     EchoNode,
     EchoType,
@@ -133,8 +136,8 @@ export class BladeToAstVisitor
     }
 
     pairDirective(children: PairDirectiveCstChildren, param?: any): Node {
-        const openDirective = this.visit(children.startDirective)
-        const closeDirective = this.visit(children.endDirective)
+        const openDirective = this.visit(children.startDirective);
+        const closeDirective = this.visit(children.endDirective);
         const content = children.content?.map((content: any) => {
             return this.visit(content);
         });
@@ -142,12 +145,12 @@ export class BladeToAstVisitor
         return new DirectivePairNode(
             openDirective,
             closeDirective,
-            content ?? [],
-        )
+            content ?? []
+        );
     }
 
     endDirective(children: EndDirectiveCstChildren, param?: any): Node {
-        return this.directive({Directive: children.EndDirective}, param);
+        return this.directive({ Directive: children.EndDirective }, param);
     }
 }
 

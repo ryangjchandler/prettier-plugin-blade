@@ -41,7 +41,7 @@ function matchDirective(text: string, startOffset: number) {
     while (/\w/.exec(charCode)) {
         endOffset++;
         charCode = text.charAt(endOffset);
-        directiveName += charCode
+        directiveName += charCode;
     }
 
     // Consume spaces
@@ -109,7 +109,7 @@ function matchDirective(text: string, startOffset: number) {
         matches: text.substring(startOffset, endOffset),
         startOffset,
         endOffset,
-    }
+    };
 }
 
 export const Echo = createToken({
@@ -145,14 +145,17 @@ export const EscapedRawEcho = createToken({
 export const DirectiveWithArgs = createToken({
     name: Token.Directive,
     pattern: {
-        exec(text: string, startOffset: number): CustomPatternMatcherReturn | null {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
             const result = matchDirective(text, startOffset);
 
             if (result === null) {
                 return null;
             }
 
-            return [result.matches]
+            return [result.matches];
         },
     },
     start_chars_hint: ["@"],
@@ -162,7 +165,10 @@ export const DirectiveWithArgs = createToken({
 export const EndDirectiveWithArgs = createToken({
     name: Token.EndDirective,
     pattern: {
-        exec(text: string, startOffset: number): CustomPatternMatcherReturn | null {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
             const result = matchDirective(text, startOffset);
 
             if (result === null) {
@@ -170,17 +176,16 @@ export const EndDirectiveWithArgs = createToken({
             }
 
             // Check if directive is an end directive
-            if (!result.directiveName.startsWith('end')) {
+            if (!result.directiveName.startsWith("end")) {
                 return null;
             }
 
-            return [result.matches]
+            return [result.matches];
         },
     },
     start_chars_hint: ["@"],
     line_breaks: false,
 });
-
 
 export const Literal = createToken({
     name: Token.Literal,
