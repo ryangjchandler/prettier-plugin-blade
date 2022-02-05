@@ -6,11 +6,22 @@ export interface BladeCstNode extends CstNode {
 }
 
 export type BladeCstChildren = {
+    content?: ContentCstNode[];
+};
+
+export interface ContentCstNode extends CstNode {
+    name: "content";
+    children: ContentCstChildren;
+}
+
+export type ContentCstChildren = {
     literal?: LiteralCstNode[];
     directive?: DirectiveCstNode[];
     echo?: EchoCstNode[];
     rawEcho?: RawEchoCstNode[];
     comment?: CommentCstNode[];
+    escapedEcho?: EscapedEchoCstNode[];
+    escapedRawEcho?: EscapedRawEchoCstNode[];
 };
 
 export interface DirectiveCstNode extends CstNode {
@@ -58,11 +69,32 @@ export type CommentCstChildren = {
     Comment: IToken[];
 };
 
+export interface EscapedEchoCstNode extends CstNode {
+    name: "escapedEcho";
+    children: EscapedEchoCstChildren;
+}
+
+export type EscapedEchoCstChildren = {
+    EscapedEcho: IToken[];
+};
+
+export interface EscapedRawEchoCstNode extends CstNode {
+    name: "escapedRawEcho";
+    children: EscapedRawEchoCstChildren;
+}
+
+export type EscapedRawEchoCstChildren = {
+    EscapedRawEcho: IToken[];
+};
+
 export interface ICstNodeVisitor<IN, OUT> extends ICstVisitor<IN, OUT> {
     blade(children: BladeCstChildren, param?: IN): OUT;
+    content(children: ContentCstChildren, param?: IN): OUT;
     directive(children: DirectiveCstChildren, param?: IN): OUT;
     literal(children: LiteralCstChildren, param?: IN): OUT;
     echo(children: EchoCstChildren, param?: IN): OUT;
     rawEcho(children: RawEchoCstChildren, param?: IN): OUT;
     comment(children: CommentCstChildren, param?: IN): OUT;
+    escapedEcho(children: EscapedEchoCstChildren, param?: IN): OUT;
+    escapedRawEcho(children: EscapedRawEchoCstChildren, param?: IN): OUT;
 }

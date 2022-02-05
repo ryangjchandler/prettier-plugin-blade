@@ -1,20 +1,20 @@
 import { format, ParserOptions } from "prettier";
 // @ts-ignore
 import php from "@prettier/plugin-php/standalone";
-const tw = require('prettier-plugin-tailwindcss')
+const tw = require("prettier-plugin-tailwindcss");
 
-let pluginOptions: ParserOptions
+let pluginOptions: ParserOptions;
 export const setOptions = (options: ParserOptions) => {
-    pluginOptions = options
-}
+    pluginOptions = options;
+};
 
 export const formatAsHtml = (source: string): string => {
     return format(source, {
         parser: "html",
         plugins: [{ parsers: { html: tw.parsers.html } }],
-        tabWidth: pluginOptions?.tabWidth
-    })
-}
+        tabWidth: pluginOptions?.tabWidth,
+    });
+};
 
 export const formatAsPhp = (source: string): string => {
     let manipulated = source;

@@ -1,15 +1,18 @@
-import {parseBlade} from "../src/lang/parser";
+import { parseBlade } from "../src/lang/Parser";
+import { bladeToAstVisitor } from "../src/lang/ASTParser";
 
 const parse = (source: string) => {
-    const result = parseBlade(source)
+    const result = parseBlade(source);
 
-    if (result.parseErrors.length > 0) {
-        throw result.parseErrors[0]
-    }
-
-    return result.cst.children
+    return bladeToAstVisitor.visit(result.cst);
 };
 
-it.todo('should parse literal only');
+it("should work", function () {
+    const ast = parse("{{'awesome'}} @csrf {{'cool'}}");
+
+    expect(ast);
+});
+
+it.todo("should parse literal only");
 
 it.todo("should parse directives");

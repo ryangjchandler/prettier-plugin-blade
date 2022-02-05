@@ -1,58 +1,58 @@
 import { BladeLexer, Token } from "../src/lang/lexer";
-import {ILexingResult, IToken} from "chevrotain";
+import { IToken } from "chevrotain";
 
 const lex = (source: string): IToken[] => {
     const result = BladeLexer.tokenize(source);
 
-  if (result.errors.length > 0) {
-      throw new Error("Lexer found " + result.errors.length + " errors")
-  }
+    if (result.errors.length > 0) {
+        throw result.errors[0];
+    }
 
-    return result.tokens
+    return result.tokens;
 };
 
 it("should generate echo tokens", () => {
     const tokens = lex("{{ $test }}");
 
-    expect(tokens[0]).toHaveProperty("tokenType.name", Token.Echo)
-    expect(tokens[0]).toHaveProperty("image", "{{ $test }}")
+    expect(tokens[0]).toHaveProperty("tokenType.name", Token.Echo);
+    expect(tokens[0]).toHaveProperty("image", "{{ $test }}");
 
-    expect(tokens).toHaveLength(1)
+    expect(tokens).toHaveLength(1);
 });
 
-it('should generate echo tokens when no spaces', function () {
+it("should generate echo tokens when no spaces", function () {
     const tokens = lex("{{$coolStuff}}");
 
-    expect(tokens[0]).toHaveProperty("tokenType.name", Token.Echo)
-    expect(tokens[0]).toHaveProperty("image", "{{$coolStuff}}")
+    expect(tokens[0]).toHaveProperty("tokenType.name", Token.Echo);
+    expect(tokens[0]).toHaveProperty("image", "{{$coolStuff}}");
 
-    expect(tokens).toHaveLength(1)
+    expect(tokens).toHaveLength(1);
 });
 
 it("should generate raw echo tokens", () => {
     const tokens = lex("{!! $test !!}");
 
-    expect(tokens[0]).toHaveProperty("tokenType.name", Token.RawEcho)
-    expect(tokens[0]).toHaveProperty("image", "{!! $test !!}")
+    expect(tokens[0]).toHaveProperty("tokenType.name", Token.RawEcho);
+    expect(tokens[0]).toHaveProperty("image", "{!! $test !!}");
 
-    expect(tokens).toHaveLength(1)
+    expect(tokens).toHaveLength(1);
 });
 
 it("should generate raw echo tokens without spaces", () => {
     const tokens = lex("{!!$something!!}");
 
-    expect(tokens[0]).toHaveProperty("tokenType.name", Token.RawEcho)
-    expect(tokens[0]).toHaveProperty("image", "{!!$something!!}")
+    expect(tokens[0]).toHaveProperty("tokenType.name", Token.RawEcho);
+    expect(tokens[0]).toHaveProperty("image", "{!!$something!!}");
 
-    expect(tokens).toHaveLength(1)
+    expect(tokens).toHaveLength(1);
 });
 
-
 it("should not generate echo token if no ending braces", () => {
-    const tokens = lex("{{value")
-        .filter((token) => token.tokenType.name !== Token.Literal);
+    const tokens = lex("{{value").filter(
+        (token) => token.tokenType.name !== Token.Literal
+    );
 
-    expect(tokens).toHaveLength(0)
+    expect(tokens).toHaveLength(0);
 });
 
 it("should generate echo token when starting with double negation", () => {
@@ -61,21 +61,22 @@ it("should generate echo token when starting with double negation", () => {
     expect(tokens[0]).toHaveProperty("tokenType.name", Token.Echo);
     expect(tokens[0]).toHaveProperty("image", "{{!!$value}}");
 
-    expect(tokens).toHaveLength(1)
+    expect(tokens).toHaveLength(1);
 });
 
 it("should generate raw echo tokens when wrapped in parenthesis", () => {
-    const tokens = lex("{{!! 'yes' !!}}")
-        .filter((token) => token.tokenType.name !== Token.Literal);
+    const tokens = lex("{{!! 'yes' !!}}").filter(
+        (token) => token.tokenType.name !== Token.Literal
+    );
 
     expect(tokens[0]).toHaveProperty("tokenType.name", Token.RawEcho);
     expect(tokens[0]).toHaveProperty("image", "{!! 'yes' !!}");
 
-    expect(tokens).toHaveLength(1)
+    expect(tokens).toHaveLength(1);
 });
 
 it("should parse directive if ended with space", function () {
-    const tokens = lex("@csrf ")
+    const tokens = lex("@csrf ");
 
     expect(tokens[0]).toHaveProperty("tokenType.name", Token.Directive);
     expect(tokens[0]).toHaveProperty("image", "@csrf");
@@ -84,8 +85,9 @@ it("should parse directive if ended with space", function () {
 });
 
 it("should parse multiple no args directives", function () {
-    const tokens = lex("@csrf is good @csrf")
-        .filter((token) => token.tokenType.name !== Token.Literal);
+    const tokens = lex("@csrf is good @csrf").filter(
+        (token) => token.tokenType.name !== Token.Literal
+    );
 
     expect(tokens[0]).toHaveProperty("tokenType.name", Token.Directive);
     expect(tokens[0]).toHaveProperty("image", "@csrf");
@@ -149,10 +151,10 @@ it("should generate directive tokens with double quote string", () => {
 });
 
 it("should generate directive tokens with double quote string escaped", () => {
-    const tokens = lex("@if(\"\\\")\" === '@test')");
+    const tokens = lex('@if("\\")" === \'@test\')');
 
     expect(tokens[0]).toHaveProperty("tokenType.name", Token.Directive);
-    expect(tokens[0]).toHaveProperty("image", "@if(\"\\\")\" === '@test')");
+    expect(tokens[0]).toHaveProperty("image", '@if("\\")" === \'@test\')');
 
     expect(tokens).toHaveLength(1);
 });
@@ -175,18 +177,30 @@ it("should generate directive tokens with close parenthesis over multiple lines"
     expect(tokens).toHaveLength(1);
 });
 
-it("should generate directive tokens with open parenthesis over multiple lines", () => {
+it("should generate literal tokens for parenthesis with open parenthesis on next line", () => {
     const tokens = lex("@csrf\n\n\n()");
 
     expect(tokens[0]).toHaveProperty("tokenType.name", Token.Directive);
-    expect(tokens[0]).toHaveProperty("image", "@csrf\n\n\n()");
+    expect(tokens[0]).toHaveProperty("image", "@csrf");
 
-    expect(tokens).toHaveLength(1);
+    expect(tokens[1]).toHaveProperty("tokenType.name", Token.Literal);
+    expect(tokens[1]).toHaveProperty("image", "\n");
+    expect(tokens[2]).toHaveProperty("tokenType.name", Token.Literal);
+    expect(tokens[2]).toHaveProperty("image", "\n");
+    expect(tokens[3]).toHaveProperty("tokenType.name", Token.Literal);
+    expect(tokens[3]).toHaveProperty("image", "\n");
+    expect(tokens[4]).toHaveProperty("tokenType.name", Token.Literal);
+    expect(tokens[4]).toHaveProperty("image", "(");
+    expect(tokens[5]).toHaveProperty("tokenType.name", Token.Literal);
+    expect(tokens[5]).toHaveProperty("image", ")");
+
+    expect(tokens).toHaveLength(6);
 });
 
-it('should match echo with non php around it', function () {
-    const tokens = lex("does it  {{ 'work' }}?")
-        .filter((token) => token.tokenType.name !== Token.Literal);
+it("should match echo with non php around it", function () {
+    const tokens = lex("does it  {{ 'work' }}?").filter(
+        (token) => token.tokenType.name !== Token.Literal
+    );
 
     expect(tokens[0]).toHaveProperty("tokenType.name", Token.Echo);
     expect(tokens[0]).toHaveProperty("image", "{{ 'work' }}");
@@ -194,7 +208,7 @@ it('should match echo with non php around it', function () {
     expect(tokens).toHaveLength(1);
 });
 
-it('should parse space as literal', function () {
+it("should parse space as literal", function () {
     const tokens = lex(" ");
 
     expect(tokens[0]).toHaveProperty("tokenType.name", Token.Literal);
@@ -203,7 +217,7 @@ it('should parse space as literal', function () {
     expect(tokens).toHaveLength(1);
 });
 
-it('should parse space after directive as literal', function () {
+it("should parse space after directive as literal", function () {
     const tokens = lex("@csrf ");
 
     expect(tokens[0]).toHaveProperty("tokenType.name", Token.Directive);
@@ -214,3 +228,44 @@ it('should parse space after directive as literal', function () {
 
     expect(tokens).toHaveLength(2);
 });
+
+it("should parse comment with @ sign as comment", function () {
+    const tokens = lex("@{{--This is actually not that nice--}}");
+
+    expect(tokens[0]).toHaveProperty("tokenType.name", Token.Literal);
+    expect(tokens[0]).toHaveProperty("image", "@");
+
+    expect(tokens[1]).toHaveProperty("tokenType.name", Token.Comment);
+    expect(tokens[1]).toHaveProperty(
+        "image",
+        "{{--This is actually not that nice--}}"
+    );
+
+    expect(tokens).toHaveLength(2);
+});
+
+it("should parse escaped echos", function () {
+    const tokens = lex("@{{ This is actually not that nice }}");
+
+    expect(tokens[0]).toHaveProperty("tokenType.name", Token.EscapedEcho);
+    expect(tokens[0]).toHaveProperty(
+        "image",
+        "@{{ This is actually not that nice }}"
+    );
+
+    expect(tokens).toHaveLength(1);
+});
+
+it("should parse escaped raw echoes", function () {
+    const tokens = lex("@{!! This is actually not that nice !!}");
+
+    expect(tokens[0]).toHaveProperty("tokenType.name", Token.EscapedRawEcho);
+    expect(tokens[0]).toHaveProperty(
+        "image",
+        "@{!! This is actually not that nice !!}"
+    );
+
+    expect(tokens).toHaveLength(1);
+});
+
+it.todo("should parse escaped directive as literal");

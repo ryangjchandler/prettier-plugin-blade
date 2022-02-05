@@ -1,14 +1,14 @@
-import { doc, format } from "prettier";
+import { doc } from "prettier";
 import { builders } from "prettier/doc";
 import { formatAsHtml, formatAsPhp } from "../../utils";
 import Doc = builders.Doc;
 
 const {
-    builders: { group, softline, indent, line, hardline },
+    builders: { group, hardline },
 } = doc;
 
 export interface Node {
-    toDoc(): Doc;
+    toDoc(): Doc[] | Doc | string;
     toString(): string;
 }
 
@@ -25,6 +25,14 @@ export namespace EchoType {
             case EchoType.Raw:
                 return ["{!!", "!!}"];
         }
+    }
+}
+
+export class DocumentNode implements Node {
+    constructor(private children: Node[]) {}
+
+    toDoc(): Doc[] {
+        return this.children.map((child) => child.toDoc());
     }
 }
 
@@ -50,8 +58,7 @@ export class DirectiveNode implements Node {
     constructor(
         public content: string,
         public directive: string,
-        public code: string,
-        public line: number
+        public code: string
     ) {}
 
     toDoc(): Doc {
@@ -111,13 +118,15 @@ export class VerbatimNode implements Node {
             <verbatim-block>
                 ${this.toString()}
             </verbatim-block>
-        `)
+        `);
 
-        return fakeHtml.replace('<verbatim-block>', '@verbatim').replace('</verbatim-block>', '@endverbatim')
+        return fakeHtml
+            .replace("<verbatim-block>", "@verbatim")
+            .replace("</verbatim-block>", "@endverbatim");
     }
 
     toString(): string {
-        return this.content
+        return this.content;
     }
 }
 

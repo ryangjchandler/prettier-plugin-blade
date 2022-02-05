@@ -1,34 +1,34 @@
 name: Build
 
 on:
-  push:
-    branches:
-      - main
+    push:
+        branches:
+            - main
 
 jobs:
-  build:
-    name: Build
-    runs-on: ubuntu-latest
+    build:
+        name: Build
+        runs-on: ubuntu-latest
 
-    concurrency:
-      group: main-build
-      cancel-in-progress: true
+        concurrency:
+            group: main-build
+            cancel-in-progress: true
 
-    steps:
-      - uses: actions/checkout@master
+        steps:
+            - uses: actions/checkout@master
 
-      - uses: actions/setup-node@v2
-        with:
-          node-version: 16
+            - uses: actions/setup-node@v2
+              with:
+                  node-version: 16
 
-      - run: npm install
-      - run: |
-          tsc --build --clean
-          tsc --build
+            - run: npm install
+            - run: |
+                  tsc --build --clean
+                  tsc --build
 
-      - uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: |
-            chore: build
-          branch: main
-          file_pattern: dist/
+            - uses: stefanzweifel/git-auto-commit-action@v4
+              with:
+                  commit_message: |
+                      chore: build
+                  branch: main
+                  file_pattern: dist/
