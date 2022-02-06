@@ -1,12 +1,13 @@
-import { doc } from "prettier";
-import { builders } from "prettier/doc";
-import { formatAsHtml, formatAsPhp } from "../../utils";
+import {doc} from "prettier";
+import {builders} from "prettier/doc";
+import {formatAsHtml, formatAsPhp} from "../../utils";
 import Doc = builders.Doc;
 import group = doc.builders.group;
 import hardline = doc.builders.hardline;
+import indent = doc.builders.indent;
 
 export interface Node {
-    toDoc(): Doc[] | Doc | string;
+    toDoc(): Doc;
     toString(): string;
 }
 
@@ -30,7 +31,9 @@ export class DocumentNode implements Node {
     constructor(public children: Node[]) {}
 
     toDoc(): Doc[] {
-        return this.children.map((child) => child.toDoc());
+        return [
+            ...this.children.map((child) => child.toDoc())
+        ];
     }
 }
 
@@ -60,7 +63,9 @@ export class DirectiveNode implements Node {
     ) {}
 
     toDoc(): Doc {
-        return group([this.toString()]);
+        return group([
+            this.toString(),
+        ]);
     }
 
     toString(): string {
@@ -74,7 +79,7 @@ export class LiteralNode implements Node {
     constructor(private content: string) {}
 
     toDoc(): Doc {
-        return group(this.toString());
+        return this.toString();
     }
 
     toString(): string {
@@ -90,13 +95,21 @@ export class DirectivePairNode implements Node {
     ) {}
 
     toDoc(): Doc {
-        return group([
-            this.open.toDoc(),
+        return [
+            this.open.toString(),
+            indent([
+                hardline,
+                ...this.children.map(function (child) {
+                    if (child instanceof LiteralNode) {
+                        return child.toString().trim()
+                    }
+
+                    return child.toDoc();
+                }),
+            ]),
             hardline,
-            this.children.map((child) => child.toDoc()),
-            hardline,
-            this.close.toDoc(),
-        ]);
+            this.close.toString(),
+        ];
     }
 
     toString(): string {

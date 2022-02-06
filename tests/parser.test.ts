@@ -4,7 +4,7 @@ import { generateCstDts } from "chevrotain";
 import {
     DirectiveNode,
     DirectivePairNode,
-    DocumentNode,
+    DocumentNode, LiteralNode,
 } from "../src/lang/nodes";
 
 const parse = (source: string): DocumentNode => {
@@ -62,13 +62,16 @@ it("should parse ast for directive", function () {
 it("should parse ast for multiple directive ", function () {
     const ast = parse("@method('PUT') @csrf");
 
-    expect(ast.children).toHaveLength(2);
+    expect(ast.children).toHaveLength(3);
 
     const methodDirective = ast.children[0] as DirectiveNode;
     expect(methodDirective.directive).toBe("method");
     expect(methodDirective.code).toBe("'PUT'");
 
-    const csrfDirective = ast.children[1] as DirectiveNode;
+    const literal = ast.children[1] as LiteralNode;
+    expect(literal.toString()).toBe(" ");
+
+    const csrfDirective = ast.children[2] as DirectiveNode;
     expect(csrfDirective.directive).toBe("csrf");
     expect(csrfDirective.code).toBe("");
 });

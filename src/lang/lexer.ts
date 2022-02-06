@@ -10,12 +10,20 @@ export enum Token {
     EscapedEcho = "EscapedEcho",
     EscapedRawEcho = "EscapedRawEcho",
     EndDirective = "EndDirective",
+    StartDirective = "StartDirective",
 }
 
 enum Mode {
     PHP = "php_mode",
     BLADE = "blade_mode",
 }
+
+export const terminalDirectives = [
+    "auth",
+    "prepend",
+    "push",
+    "error",
+];
 
 function matchDirective(text: string, startOffset: number) {
     let endOffset = startOffset;
@@ -36,12 +44,12 @@ function matchDirective(text: string, startOffset: number) {
 
     endOffset++;
     charCode = text.charAt(endOffset);
-    let directiveName = charCode;
+    let directiveName = ""
     // Consume name of directive
     while (/\w/.exec(charCode)) {
         endOffset++;
-        charCode = text.charAt(endOffset);
         directiveName += charCode;
+        charCode = text.charAt(endOffset);
     }
 
     // Consume spaces
@@ -187,6 +195,32 @@ export const EndDirectiveWithArgs = createToken({
     line_breaks: false,
 });
 
+export const StartDirectiveWithArgs = createToken({
+    name: Token.StartDirective,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            const result = matchDirective(text, startOffset);
+
+            if (result === null) {
+                return null;
+            }
+
+            // Check if directive is a start directive
+            if (!terminalDirectives.includes(result.directiveName)) {
+                return null;
+            }
+
+            return [result.matches];
+        },
+    },
+    start_chars_hint: ["@"],
+    line_breaks: false,
+});
+
+
 export const Literal = createToken({
     name: Token.Literal,
     pattern: /(.|\n)/,
@@ -199,6 +233,7 @@ export const allTokens = {
             RawEcho,
             Echo,
             EndDirectiveWithArgs,
+            StartDirectiveWithArgs,
             DirectiveWithArgs,
             EscapedEcho,
             EscapedRawEcho,

@@ -9,7 +9,7 @@ import {
     EscapedEcho,
     EscapedRawEcho,
     Literal,
-    RawEcho,
+    RawEcho, StartDirectiveWithArgs,
 } from "./lexer";
 
 class BladeToCSTParser extends CstParser {
@@ -61,8 +61,12 @@ class BladeToCSTParser extends CstParser {
         this.CONSUME(EndDirectiveWithArgs);
     });
 
+    private startDirective = this.RULE("startDirective", () => {
+        this.CONSUME(StartDirectiveWithArgs);
+    });
+
     private pairDirective = this.RULE("pairDirective", () => {
-        this.SUBRULE(this.directive, { LABEL: "startDirective" });
+        this.SUBRULE(this.startDirective, { LABEL: "startDirective" });
         this.OPTION(() => {
             this.MANY(() => {
                 this.SUBRULE(this.content);

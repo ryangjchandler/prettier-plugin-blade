@@ -152,6 +152,10 @@ export class BladeToAstVisitor
     endDirective(children: EndDirectiveCstChildren, param?: any): Node {
         return this.directive({ Directive: children.EndDirective }, param);
     }
+
+    startDirective(children: any, param?: any): Node {
+        return this.directive({ Directive: children.StartDirective }, param);
+    }
 }
 
 export const bladeToAstVisitor = new BladeToAstVisitor();
