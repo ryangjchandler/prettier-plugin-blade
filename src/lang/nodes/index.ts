@@ -152,3 +152,51 @@ export class CommentNode implements Node {
         return `{{-- ${this.content} --}}`;
     }
 }
+
+export class DirectiveIfBlockNode implements Node {
+    constructor(
+        public open: DirectiveNode,
+        public close: DirectiveNode,
+        public children: Node[],
+        public elseBlock: DirectiveElseBlockNode | null,
+        public elseIfBlocks: DirectiveElseIfBlockNode[],
+    ) {}
+
+    toDoc(): Doc {
+        return [];
+    }
+
+    toString(): string {
+        return "";
+    }
+}
+
+export class DirectiveElseBlockNode implements Node {
+    constructor(
+        public elseDirective: DirectiveNode,
+        public children: Node[]
+    ) {}
+
+    toDoc(): Doc {
+        return [];
+    }
+
+    toString(): string {
+        return "";
+    }
+}
+
+export class DirectiveElseIfBlockNode implements Node {
+    constructor(
+        public elseIfDirective: DirectiveNode,
+        public children: Node[]
+    ) {}
+
+    toDoc(): Doc {
+        return [];
+    }
+
+    toString(): string {
+        return "";
+    }
+}

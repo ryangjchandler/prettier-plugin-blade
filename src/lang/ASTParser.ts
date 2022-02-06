@@ -4,17 +4,17 @@ import {
     CommentCstChildren,
     ContentCstChildren,
     DirectiveCstChildren,
-    EchoCstChildren,
-    EndDirectiveCstChildren,
+    EchoCstChildren, ElseBlockCstChildren, ElseDirectiveCstChildren, ElseIfBlockCstChildren, ElseIfDirectiveCstChildren,
+    EndDirectiveCstChildren, EndIfDirectiveCstChildren,
     EscapedEchoCstChildren,
     EscapedRawEchoCstChildren,
-    ICstNodeVisitor,
+    ICstNodeVisitor, IfDirectiveBlockCstChildren,
     LiteralCstChildren,
     PairDirectiveCstChildren,
-    RawEchoCstChildren,
+    RawEchoCstChildren, StartDirectiveCstChildren, StartIfDirectiveCstChildren,
 } from "./blade_cst";
 import {
-    CommentNode,
+    CommentNode, DirectiveElseBlockNode, DirectiveElseIfBlockNode, DirectiveIfBlockNode,
     DirectiveNode,
     DirectivePairNode,
     DocumentNode,
@@ -52,7 +52,8 @@ export class BladeToAstVisitor
             children.comment ??
             children.escapedEcho ??
             children.escapedRawEcho ??
-            children.pairDirective;
+            children.pairDirective ??
+            children.ifDirectiveBlock;
 
         if (child === undefined) {
             throw new Error("Content should always have at least 1 child.");
@@ -153,8 +154,70 @@ export class BladeToAstVisitor
         return this.directive({ Directive: children.EndDirective }, param);
     }
 
-    startDirective(children: any, param?: any): Node {
+    startDirective(children: StartDirectiveCstChildren, param?: any): Node {
         return this.directive({ Directive: children.StartDirective }, param);
+    }
+
+    startIfDirective(children: StartIfDirectiveCstChildren, param?: any): Node {
+        return this.directive({ Directive: children.StartIfDirective }, param);
+    }
+
+    endIfDirective(children: EndIfDirectiveCstChildren, param?: any): Node {
+        return this.directive({ Directive: children.EndIfDirective }, param);
+    }
+
+    elseDirective(children: ElseDirectiveCstChildren, param?: any): Node {
+        return this.directive({ Directive: children.ElseDirective }, param);
+    }
+
+    elseIfDirective(children: ElseIfDirectiveCstChildren, param?: any): Node {
+        return this.directive({ Directive: children.ElseIfDirective }, param);
+    }
+
+    elseBlock(children: ElseBlockCstChildren, param?: any): Node {
+        const elseDirective = this.visit(children.elseDirective);
+        const content = children.content?.map((content: any) => {
+            return this.visit(content);
+        });
+
+        return new DirectiveElseBlockNode(
+            elseDirective,
+            content ?? []
+        )
+    }
+
+    elseIfBlock(children: ElseIfBlockCstChildren, param?: any): Node {
+        const elseIfDirective = this.visit(children.elseIfDirective);
+        const content = children.content?.map((content: any) => {
+            return this.visit(content);
+        });
+
+        return new DirectiveElseIfBlockNode(
+            elseIfDirective,
+            content ?? []
+        )
+    }
+
+    ifDirectiveBlock(children: IfDirectiveBlockCstChildren, param?: any): Node {
+        const openDirective = this.visit(children.startDirective);
+        const closeDirective = this.visit(children.endDirective);
+        const elseBlock = children.elseBlock === undefined ? null : this.visit(children.elseBlock);
+        const elseIfBlocks = children.elseIfBlock?.map((elseIfBlock: any) => {
+            return this.visit(elseIfBlock)
+        })
+
+        // The content of the first if statement
+        const content = children.content?.map((content: any) => {
+            return this.visit(content);
+        });
+
+        return new DirectiveIfBlockNode (
+            openDirective,
+            closeDirective,
+            content ?? [],
+            elseBlock,
+            elseIfBlocks ?? [],
+        );
     }
 }
 

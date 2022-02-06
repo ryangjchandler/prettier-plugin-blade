@@ -18,6 +18,7 @@ export type ContentCstChildren = {
     literal?: LiteralCstNode[];
     pairDirective?: PairDirectiveCstNode[];
     directive?: DirectiveCstNode[];
+    ifDirectiveBlock?: IfDirectiveBlockCstNode[];
     echo?: EchoCstNode[];
     rawEcho?: RawEchoCstNode[];
     comment?: CommentCstNode[];
@@ -43,13 +44,22 @@ export type EndDirectiveCstChildren = {
     EndDirective: IToken[];
 };
 
+export interface StartDirectiveCstNode extends CstNode {
+    name: "startDirective";
+    children: StartDirectiveCstChildren;
+}
+
+export type StartDirectiveCstChildren = {
+    StartDirective: IToken[];
+};
+
 export interface PairDirectiveCstNode extends CstNode {
     name: "pairDirective";
     children: PairDirectiveCstChildren;
 }
 
 export type PairDirectiveCstChildren = {
-    startDirective: DirectiveCstNode[];
+    startDirective: StartDirectiveCstNode[];
     content?: ContentCstNode[];
     endDirective: EndDirectiveCstNode[];
 };
@@ -108,11 +118,81 @@ export type EscapedRawEchoCstChildren = {
     EscapedRawEcho: IToken[];
 };
 
+export interface StartIfDirectiveCstNode extends CstNode {
+    name: "startIfDirective";
+    children: StartIfDirectiveCstChildren;
+}
+
+export type StartIfDirectiveCstChildren = {
+    StartIfDirective: IToken[];
+};
+
+export interface EndIfDirectiveCstNode extends CstNode {
+    name: "endIfDirective";
+    children: EndIfDirectiveCstChildren;
+}
+
+export type EndIfDirectiveCstChildren = {
+    EndIfDirective: IToken[];
+};
+
+export interface ElseDirectiveCstNode extends CstNode {
+    name: "elseDirective";
+    children: ElseDirectiveCstChildren;
+}
+
+export type ElseDirectiveCstChildren = {
+    ElseDirective: IToken[];
+};
+
+export interface ElseIfDirectiveCstNode extends CstNode {
+    name: "elseIfDirective";
+    children: ElseIfDirectiveCstChildren;
+}
+
+export type ElseIfDirectiveCstChildren = {
+    ElseIfDirective: IToken[];
+};
+
+export interface ElseBlockCstNode extends CstNode {
+    name: "elseBlock";
+    children: ElseBlockCstChildren;
+}
+
+export type ElseBlockCstChildren = {
+    elseDirective: ElseDirectiveCstNode[];
+    content?: ContentCstNode[];
+};
+
+export interface ElseIfBlockCstNode extends CstNode {
+    name: "elseIfBlock";
+    children: ElseIfBlockCstChildren;
+}
+
+export type ElseIfBlockCstChildren = {
+    elseIfDirective: ElseIfDirectiveCstNode[];
+    content?: ContentCstNode[];
+};
+
+export interface IfDirectiveBlockCstNode extends CstNode {
+    name: "ifDirectiveBlock";
+    children: IfDirectiveBlockCstChildren;
+}
+
+export type IfDirectiveBlockCstChildren = {
+    startDirective: StartIfDirectiveCstNode[];
+    content?: ContentCstNode[];
+    elseIfBlock?: ElseIfBlockCstNode[];
+    elseBlock?: ElseBlockCstNode[];
+    endDirective: EndIfDirectiveCstNode[];
+};
+
 export interface ICstNodeVisitor<IN, OUT> extends ICstVisitor<IN, OUT> {
     blade(children: BladeCstChildren, param?: IN): OUT;
     content(children: ContentCstChildren, param?: IN): OUT;
     directive(children: DirectiveCstChildren, param?: IN): OUT;
     endDirective(children: EndDirectiveCstChildren, param?: IN): OUT;
+    startDirective(children: StartDirectiveCstChildren, param?: IN): OUT;
     pairDirective(children: PairDirectiveCstChildren, param?: IN): OUT;
     literal(children: LiteralCstChildren, param?: IN): OUT;
     echo(children: EchoCstChildren, param?: IN): OUT;
@@ -120,4 +200,11 @@ export interface ICstNodeVisitor<IN, OUT> extends ICstVisitor<IN, OUT> {
     comment(children: CommentCstChildren, param?: IN): OUT;
     escapedEcho(children: EscapedEchoCstChildren, param?: IN): OUT;
     escapedRawEcho(children: EscapedRawEchoCstChildren, param?: IN): OUT;
+    startIfDirective(children: StartIfDirectiveCstChildren, param?: IN): OUT;
+    endIfDirective(children: EndIfDirectiveCstChildren, param?: IN): OUT;
+    elseDirective(children: ElseDirectiveCstChildren, param?: IN): OUT;
+    elseIfDirective(children: ElseIfDirectiveCstChildren, param?: IN): OUT;
+    elseBlock(children: ElseBlockCstChildren, param?: IN): OUT;
+    elseIfBlock(children: ElseIfBlockCstChildren, param?: IN): OUT;
+    ifDirectiveBlock(children: IfDirectiveBlockCstChildren, param?: IN): OUT;
 }

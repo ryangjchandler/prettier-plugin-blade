@@ -118,52 +118,52 @@ it("should generate comment tokens without spaces", () => {
 
 it("should generate directive tokens", () => {
     const tokens = lex(
-        "@php @if(true) @else() @if  (true) @if(auth()) @if(')' === '@test')"
+        "@php @something(true) @some() @some  (true) @some(auth()) @some(')' === '@test')"
     ).filter((token) => token.tokenType.name !== Token.Literal);
 
     expect(tokens[0]).toHaveProperty("tokenType.name", Token.Directive);
     expect(tokens[0]).toHaveProperty("image", "@php");
 
     expect(tokens[1]).toHaveProperty("tokenType.name", Token.Directive);
-    expect(tokens[1]).toHaveProperty("image", "@if(true)");
+    expect(tokens[1]).toHaveProperty("image", "@something(true)");
 
     expect(tokens[2]).toHaveProperty("tokenType.name", Token.Directive);
-    expect(tokens[2]).toHaveProperty("image", "@else()");
+    expect(tokens[2]).toHaveProperty("image", "@some()");
 
     expect(tokens[3]).toHaveProperty("tokenType.name", Token.Directive);
-    expect(tokens[3]).toHaveProperty("image", "@if  (true)");
+    expect(tokens[3]).toHaveProperty("image", "@some  (true)");
 
     expect(tokens[4]).toHaveProperty("tokenType.name", Token.Directive);
-    expect(tokens[4]).toHaveProperty("image", "@if(auth())");
+    expect(tokens[4]).toHaveProperty("image", "@some(auth())");
 
     expect(tokens[5]).toHaveProperty("tokenType.name", Token.Directive);
-    expect(tokens[5]).toHaveProperty("image", "@if(')' === '@test')");
+    expect(tokens[5]).toHaveProperty("image", "@some(')' === '@test')");
     expect(tokens).toHaveLength(6);
 });
 
 it("should generate directive tokens with double quote string", () => {
-    const tokens = lex("@if(\")\" === '@test')");
+    const tokens = lex("@directive(\")\" === '@test')");
 
     expect(tokens[0]).toHaveProperty("tokenType.name", Token.Directive);
-    expect(tokens[0]).toHaveProperty("image", "@if(\")\" === '@test')");
+    expect(tokens[0]).toHaveProperty("image", "@directive(\")\" === '@test')");
 
     expect(tokens).toHaveLength(1);
 });
 
 it("should generate directive tokens with double quote string escaped", () => {
-    const tokens = lex('@if("\\")" === \'@test\')');
+    const tokens = lex('@custom("\\")" === \'@test\')');
 
     expect(tokens[0]).toHaveProperty("tokenType.name", Token.Directive);
-    expect(tokens[0]).toHaveProperty("image", '@if("\\")" === \'@test\')');
+    expect(tokens[0]).toHaveProperty("image", '@custom("\\")" === \'@test\')');
 
     expect(tokens).toHaveLength(1);
 });
 
 it("should generate directive tokens with single quote string escaped", () => {
-    const tokens = lex("@if('\\')' === '@test')");
+    const tokens = lex("@test('\\')' === '@test')");
 
     expect(tokens[0]).toHaveProperty("tokenType.name", Token.Directive);
-    expect(tokens[0]).toHaveProperty("image", "@if('\\')' === '@test')");
+    expect(tokens[0]).toHaveProperty("image", "@test('\\')' === '@test')");
 
     expect(tokens).toHaveLength(1);
 });
@@ -267,5 +267,55 @@ it("should parse escaped raw echoes", function () {
 
     expect(tokens).toHaveLength(1);
 });
+
+it("should parse if directive", function () {
+    const tokens = lex("@if(true)");
+
+    expect(tokens[0]).toHaveProperty("tokenType.name", Token.StartIfDirective);
+    expect(tokens[0]).toHaveProperty(
+        "image",
+        "@if(true)"
+    );
+
+    expect(tokens).toHaveLength(1);
+});
+
+it("should parse elseif directive", function () {
+    const tokens = lex("@elseif(true)");
+
+    expect(tokens[0]).toHaveProperty("tokenType.name", Token.ElseIfDirective);
+    expect(tokens[0]).toHaveProperty(
+        "image",
+        "@elseif(true)"
+    );
+
+    expect(tokens).toHaveLength(1);
+});
+
+it("should parse else directive", function () {
+    const tokens = lex("@else");
+
+    expect(tokens[0]).toHaveProperty("tokenType.name", Token.ElseDirective);
+    expect(tokens[0]).toHaveProperty(
+        "image",
+        "@else"
+    );
+
+    expect(tokens).toHaveLength(1);
+});
+
+it("should parse endif directive", function () {
+    const tokens = lex("@endif");
+
+    expect(tokens[0]).toHaveProperty("tokenType.name", Token.EndIfDirective);
+    expect(tokens[0]).toHaveProperty(
+        "image",
+        "@endif"
+    );
+
+    expect(tokens).toHaveLength(1);
+});
+
+
 
 it.todo("should parse escaped directive as literal");

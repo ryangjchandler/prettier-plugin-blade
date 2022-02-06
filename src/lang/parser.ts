@@ -4,12 +4,12 @@ import {
     BladeLexer,
     Comment,
     DirectiveWithArgs,
-    Echo,
-    EndDirectiveWithArgs,
+    Echo, ElseDirectiveWithArgs, ElseIfDirectiveWithArgs,
+    EndDirectiveWithArgs, EndIfDirectiveWithArgs,
     EscapedEcho,
     EscapedRawEcho,
     Literal,
-    RawEcho, StartDirectiveWithArgs,
+    RawEcho, StartDirectiveWithArgs, StartIfDirectiveWithArgs,
 } from "./lexer";
 
 class BladeToCSTParser extends CstParser {
@@ -34,6 +34,9 @@ class BladeToCSTParser extends CstParser {
             },
             {
                 ALT: () => this.SUBRULE(this.directive),
+            },
+            {
+                ALT: () => this.SUBRULE(this.ifDirectiveBlock),
             },
             {
                 ALT: () => this.SUBRULE(this.echo),
@@ -100,6 +103,63 @@ class BladeToCSTParser extends CstParser {
     private escapedRawEcho = this.RULE("escapedRawEcho", () => {
         this.CONSUME(EscapedRawEcho);
     });
+
+    private startIfDirective = this.RULE("startIfDirective", () => {
+        this.CONSUME(StartIfDirectiveWithArgs)
+    })
+
+    private endIfDirective = this.RULE("endIfDirective", () => {
+        this.CONSUME(EndIfDirectiveWithArgs)
+    })
+
+    private elseDirective = this.RULE("elseDirective", () => {
+        this.CONSUME(ElseDirectiveWithArgs)
+    })
+
+    private elseIfDirective = this.RULE("elseIfDirective", () => {
+        this.CONSUME(ElseIfDirectiveWithArgs)
+    })
+
+    private elseBlock = this.RULE("elseBlock", () => {
+        this.SUBRULE(this.elseDirective, { LABEL: "elseDirective" })
+        this.OPTION(() => {
+            this.MANY(() => {
+                this.SUBRULE(this.content);
+            });
+        });
+    })
+
+    private elseIfBlock = this.RULE("elseIfBlock", () => {
+        this.SUBRULE(this.elseIfDirective, { LABEL: "elseIfDirective" })
+        this.OPTION(() => {
+            this.MANY(() => {
+                this.SUBRULE(this.content);
+            });
+        });
+    })
+
+    private ifDirectiveBlock = this.RULE("ifDirectiveBlock", () => {
+        this.SUBRULE(this.startIfDirective, { LABEL: "startDirective" });
+        this.OPTION(() => {
+            this.MANY(() => {
+                this.SUBRULE(this.content);
+            });
+        });
+
+        // Else if blocks
+        this.OPTION1(() => {
+            this.MANY1(() => {
+                this.SUBRULE(this.elseIfBlock);
+            })
+        })
+
+        // Else block
+        this.OPTION2(() => {
+            this.SUBRULE(this.elseBlock);
+        })
+
+        this.SUBRULE(this.endIfDirective, { LABEL: "endDirective" })
+    })
 }
 
 export const Parser = new BladeToCSTParser();

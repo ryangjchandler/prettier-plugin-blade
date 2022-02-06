@@ -2,10 +2,12 @@ import { parseBlade, productions } from "../src/lang/Parser";
 import { bladeToAstVisitor } from "../src/lang/ASTParser";
 import { generateCstDts } from "chevrotain";
 import {
+    DirectiveIfBlockNode,
     DirectiveNode,
     DirectivePairNode,
     DocumentNode, LiteralNode,
 } from "../src/lang/nodes";
+import exp from "constants";
 
 const parse = (source: string): DocumentNode => {
     const cstDef = generateCstDts(productions);
@@ -75,6 +77,91 @@ it("should parse ast for multiple directive ", function () {
     expect(csrfDirective.directive).toBe("csrf");
     expect(csrfDirective.code).toBe("");
 });
+
+it("should parse ast @if @endif directive block", function () {
+    const ast = parse('@if(true) cool @endif');
+
+    expect(ast.children).toHaveLength(1);
+
+    const ifBlockNode = ast.children[0] as DirectiveIfBlockNode;
+
+    expect(ifBlockNode.open.directive).toBe("if");
+    expect(ifBlockNode.children).toHaveLength(1);
+    expect(ifBlockNode.children[0].toString()).toBe(" cool ");
+    expect(ifBlockNode.close.directive).toBe("endif");
+});
+
+it("should parse ast @if @else @endif directive block", function () {
+    const ast = parse('@if(false) nice @else not as cool @endif');
+
+    expect(ast.children).toHaveLength(1);
+
+    const ifBlockNode = ast.children[0] as DirectiveIfBlockNode;
+
+    expect(ifBlockNode.open.directive).toBe("if");
+    expect(ifBlockNode.children).toHaveLength(1);
+    expect(ifBlockNode.children[0].toString()).toBe(" nice ");
+
+    const elseBlockNode = ifBlockNode.elseBlock;
+    expect(elseBlockNode?.elseDirective.directive).toBe("else");
+    expect(elseBlockNode?.children).toHaveLength(1);
+    expect(elseBlockNode?.children[0].toString()).toBe(" not as cool ");
+
+    expect(ifBlockNode.close.directive).toBe("endif");
+});
+
+it("should parse ast @if @elseif @else @endif directive block", function () {
+    const ast = parse('@if(false) nice @elseif("monkey") cat @else not as nice @endif');
+
+    expect(ast.children).toHaveLength(1);
+
+    const ifBlockNode = ast.children[0] as DirectiveIfBlockNode;
+
+    expect(ifBlockNode.open.directive).toBe("if");
+    expect(ifBlockNode.children).toHaveLength(1);
+    expect(ifBlockNode.children[0].toString()).toBe(" nice ");
+
+    expect(ifBlockNode.elseIfBlocks).toHaveLength(1);
+    const elseIfBlockNode = ifBlockNode.elseIfBlocks[0];
+    expect(elseIfBlockNode.elseIfDirective.directive).toBe("elseif");
+    expect(elseIfBlockNode.children).toHaveLength(1);
+    expect(elseIfBlockNode.children[0].toString()).toBe(" cat ");
+
+
+    const elseBlockNode = ifBlockNode.elseBlock;
+    expect(elseBlockNode?.elseDirective.directive).toBe("else");
+    expect(elseBlockNode?.children).toHaveLength(1);
+    expect(elseBlockNode?.children[0].toString()).toBe(" not as nice ");
+
+    expect(ifBlockNode.close.directive).toBe("endif");
+});
+
+it("should parse ast @if block with multiple elseif", function () {
+    const ast = parse('@if("snake") snake @elseif("monkey") monkey @elseif("human") human @endif');
+
+    expect(ast.children).toHaveLength(1);
+
+    const ifBlockNode = ast.children[0] as DirectiveIfBlockNode;
+
+    expect(ifBlockNode.open.directive).toBe("if");
+    expect(ifBlockNode.children).toHaveLength(1);
+    expect(ifBlockNode.children[0].toString()).toBe(" snake ");
+
+    expect(ifBlockNode.elseIfBlocks).toHaveLength(2);
+    const elseIfBlockNodeA = ifBlockNode.elseIfBlocks[0];
+    expect(elseIfBlockNodeA.elseIfDirective.directive).toBe("elseif");
+    expect(elseIfBlockNodeA.children).toHaveLength(1);
+    expect(elseIfBlockNodeA.children[0].toString()).toBe(" monkey ");
+
+    const elseIfBlockNodeB = ifBlockNode.elseIfBlocks[1];
+    expect(elseIfBlockNodeB.elseIfDirective.directive).toBe("elseif");
+    expect(elseIfBlockNodeB.children).toHaveLength(1);
+    expect(elseIfBlockNodeB.children[0].toString()).toBe(" human ");
+
+    expect(ifBlockNode.close.directive).toBe("endif");
+});
+
+
 
 it.todo("should parse ast for par directive with child pair directive");
 

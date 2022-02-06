@@ -18,7 +18,7 @@ test.each(
 
 
 it('should test', function () {
-    const [original, expected] = readFile(join(__dirname, "/", "__fixtures__/directive/pair-directive-starting-on-line.blade.php"))
+    const [original, expected] = readFile(join(__dirname, "/", "__fixtures__/directive/if-else-directive.blade.php"))
         .split("----")
         .map((part) => part.trimStart());
 

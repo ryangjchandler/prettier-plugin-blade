@@ -11,6 +11,10 @@ export enum Token {
     EscapedRawEcho = "EscapedRawEcho",
     EndDirective = "EndDirective",
     StartDirective = "StartDirective",
+    StartIfDirective = "StartIfDirective",
+    ElseIfDirective = "ElseIfDirective",
+    ElseDirective = "ElseDirective",
+    EndIfDirective = "EndIfDirective",
 }
 
 enum Mode {
@@ -23,6 +27,10 @@ export const terminalDirectives = [
     "prepend",
     "push",
     "error",
+    "unless",
+    "isset",
+    "empty",
+    "guest",
 ];
 
 function matchDirective(text: string, startOffset: number) {
@@ -220,6 +228,106 @@ export const StartDirectiveWithArgs = createToken({
     line_breaks: false,
 });
 
+export const StartIfDirectiveWithArgs = createToken({
+    name: Token.StartIfDirective,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            const result = matchDirective(text, startOffset);
+
+            if (result === null) {
+                return null;
+            }
+
+            // Check if `@if` directive
+            if (result.directiveName !== 'if') {
+                return null;
+            }
+
+            return [result.matches];
+        },
+    },
+    start_chars_hint: ["@"],
+    line_breaks: false,
+});
+
+export const ElseIfDirectiveWithArgs = createToken({
+    name: Token.ElseIfDirective,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            const result = matchDirective(text, startOffset);
+
+            if (result === null) {
+                return null;
+            }
+
+            // Check if `@if` directive
+            if (result.directiveName !== 'elseif') {
+                return null;
+            }
+
+            return [result.matches];
+        },
+    },
+    start_chars_hint: ["@"],
+    line_breaks: false,
+});
+
+export const ElseDirectiveWithArgs = createToken({
+    name: Token.ElseDirective,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            const result = matchDirective(text, startOffset);
+
+            if (result === null) {
+                return null;
+            }
+
+            // Check if `@if` directive
+            if (result.directiveName !== 'else') {
+                return null;
+            }
+
+            return [result.matches];
+        },
+    },
+    start_chars_hint: ["@"],
+    line_breaks: false,
+});
+
+export const EndIfDirectiveWithArgs = createToken({
+    name: Token.EndIfDirective,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            const result = matchDirective(text, startOffset);
+
+            if (result === null) {
+                return null;
+            }
+
+            // Check if `@if` directive
+            if (result.directiveName !== 'endif') {
+                return null;
+            }
+
+            return [result.matches];
+        },
+    },
+    start_chars_hint: ["@"],
+    line_breaks: false,
+});
+
 
 export const Literal = createToken({
     name: Token.Literal,
@@ -232,6 +340,10 @@ export const allTokens = {
             Comment,
             RawEcho,
             Echo,
+            StartIfDirectiveWithArgs,
+            ElseIfDirectiveWithArgs,
+            ElseDirectiveWithArgs,
+            EndIfDirectiveWithArgs,
             EndDirectiveWithArgs,
             StartDirectiveWithArgs,
             DirectiveWithArgs,
