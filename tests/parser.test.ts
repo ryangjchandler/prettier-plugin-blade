@@ -5,9 +5,8 @@ import {
     DirectiveIfBlockNode,
     DirectiveNode,
     DirectivePairNode,
-    DocumentNode, LiteralNode,
+    DocumentNode, LiteralNode, VerbatimNode,
 } from "../src/lang/nodes";
-import exp from "constants";
 
 const parse = (source: string): DocumentNode => {
     const cstDef = generateCstDts(productions);
@@ -159,6 +158,18 @@ it("should parse ast @if block with multiple elseif", function () {
     expect(elseIfBlockNodeB.children[0].toString()).toBe(" human ");
 
     expect(ifBlockNode.close.directive).toBe("endif");
+});
+
+it("should parse ast verbatim block", function () {
+    const ast = parse('@verbatim gg wp {{well}} @endverbatim');
+
+    expect(ast.children).toHaveLength(1);
+
+    const verbatimBlock = ast.children[0] as VerbatimNode;
+
+    expect(verbatimBlock.open.directive).toBe("verbatim");
+    expect(verbatimBlock.content).toEqual(" gg wp {{well}} ")
+    expect(verbatimBlock.close.directive).toBe("endverbatim");
 });
 
 

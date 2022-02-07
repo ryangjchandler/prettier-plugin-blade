@@ -316,6 +316,29 @@ it("should parse endif directive", function () {
     expect(tokens).toHaveLength(1);
 });
 
+it("should parse verbatim directive", function () {
+    const tokens = lex("@verbatim");
+
+    expect(tokens[0]).toHaveProperty("tokenType.name", Token.StartVerbatimDirective);
+    expect(tokens[0]).toHaveProperty(
+        "image",
+        "@verbatim"
+    );
+
+    expect(tokens).toHaveLength(1);
+});
+
+it("should parse endverbatim directive", function () {
+    const tokens = lex("@endverbatim");
+
+    expect(tokens[0]).toHaveProperty("tokenType.name", Token.EndVerbatimDirective);
+    expect(tokens[0]).toHaveProperty(
+        "image",
+        "@endverbatim"
+    );
+
+    expect(tokens).toHaveLength(1);
+});
 
 
 it.todo("should parse escaped directive as literal");

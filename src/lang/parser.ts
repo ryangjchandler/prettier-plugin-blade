@@ -5,11 +5,11 @@ import {
     Comment,
     DirectiveWithArgs,
     Echo, ElseDirectiveWithArgs, ElseIfDirectiveWithArgs,
-    EndDirectiveWithArgs, EndIfDirectiveWithArgs,
+    EndDirectiveWithArgs, EndIfDirectiveWithArgs, EndVerbatimDirectiveWithArgs,
     EscapedEcho,
     EscapedRawEcho,
     Literal,
-    RawEcho, StartDirectiveWithArgs, StartIfDirectiveWithArgs,
+    RawEcho, StartDirectiveWithArgs, StartIfDirectiveWithArgs, StartVerbatimDirectiveWithArgs,
 } from "./lexer";
 
 class BladeToCSTParser extends CstParser {
@@ -52,6 +52,9 @@ class BladeToCSTParser extends CstParser {
             },
             {
                 ALT: () => this.SUBRULE(this.escapedRawEcho),
+            },
+            {
+                ALT: () => this.SUBRULE(this.verbatimBlockDirective),
             },
         ]);
     });
@@ -160,6 +163,24 @@ class BladeToCSTParser extends CstParser {
 
         this.SUBRULE(this.endIfDirective, { LABEL: "endDirective" })
     })
+
+    private startVerbatimDirective = this.RULE("startVerbatimDirective", () => {
+        this.CONSUME(StartVerbatimDirectiveWithArgs)
+    })
+
+    private endVerbatimDirective = this.RULE("endVerbatimDirective", () => {
+        this.CONSUME(EndVerbatimDirectiveWithArgs)
+    })
+
+    private verbatimBlockDirective = this.RULE("verbatimBlockDirective", () => {
+        this.SUBRULE(this.startVerbatimDirective, { LABEL: "startDirective" });
+        this.OPTION(() => {
+            this.MANY(() => {
+                this.SUBRULE(this.content);
+            });
+        });
+        this.SUBRULE2(this.endVerbatimDirective, { LABEL: "endDirective" });
+    });
 }
 
 export const Parser = new BladeToCSTParser();

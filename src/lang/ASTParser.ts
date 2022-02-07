@@ -4,14 +4,25 @@ import {
     CommentCstChildren,
     ContentCstChildren,
     DirectiveCstChildren,
-    EchoCstChildren, ElseBlockCstChildren, ElseDirectiveCstChildren, ElseIfBlockCstChildren, ElseIfDirectiveCstChildren,
-    EndDirectiveCstChildren, EndIfDirectiveCstChildren,
+    EchoCstChildren,
+    ElseBlockCstChildren,
+    ElseDirectiveCstChildren,
+    ElseIfBlockCstChildren,
+    ElseIfDirectiveCstChildren,
+    EndDirectiveCstChildren,
+    EndIfDirectiveCstChildren,
+    EndVerbatimDirectiveCstChildren,
     EscapedEchoCstChildren,
     EscapedRawEchoCstChildren,
-    ICstNodeVisitor, IfDirectiveBlockCstChildren,
+    ICstNodeVisitor,
+    IfDirectiveBlockCstChildren,
     LiteralCstChildren,
     PairDirectiveCstChildren,
-    RawEchoCstChildren, StartDirectiveCstChildren, StartIfDirectiveCstChildren,
+    RawEchoCstChildren,
+    StartDirectiveCstChildren,
+    StartIfDirectiveCstChildren,
+    StartVerbatimDirectiveCstChildren,
+    VerbatimBlockDirectiveCstChildren,
 } from "./blade_cst";
 import {
     CommentNode, DirectiveElseBlockNode, DirectiveElseIfBlockNode, DirectiveIfBlockNode,
@@ -21,7 +32,7 @@ import {
     EchoNode,
     EchoType,
     LiteralNode,
-    Node,
+    Node, VerbatimNode,
 } from "./nodes";
 
 const BaseBladeVisitor = Parser.getBaseCstVisitorConstructor();
@@ -53,7 +64,8 @@ export class BladeToAstVisitor
             children.escapedEcho ??
             children.escapedRawEcho ??
             children.pairDirective ??
-            children.ifDirectiveBlock;
+            children.ifDirectiveBlock ??
+            children.verbatimBlockDirective;
 
         if (child === undefined) {
             throw new Error("Content should always have at least 1 child.");
@@ -217,6 +229,29 @@ export class BladeToAstVisitor
             content ?? [],
             elseBlock,
             elseIfBlocks ?? [],
+        );
+    }
+
+    startVerbatimDirective(children: StartVerbatimDirectiveCstChildren, param?: any): Node {
+        return this.directive({ Directive: children.StartVerbatimDirective }, param);
+    }
+
+    endVerbatimDirective(children: EndVerbatimDirectiveCstChildren, param?: any): Node {
+        return this.directive({ Directive: children.EndVerbatimDirective }, param);
+    }
+
+    verbatimBlockDirective(children: VerbatimBlockDirectiveCstChildren, param?: any): Node {
+        const openDirective = this.visit(children.startDirective);
+        const closeDirective = this.visit(children.endDirective);
+
+        const content = children.content?.map((content) => {
+            return Object.values(Object.values(content.children)[0][0].children)[0].map((object: any) => object.image).join("")
+        }).join("")
+
+        return new VerbatimNode(
+            openDirective,
+            closeDirective,
+            content ?? "",
         );
     }
 }

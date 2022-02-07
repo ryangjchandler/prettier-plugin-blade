@@ -120,14 +120,18 @@ export class DirectivePairNode implements Node {
 }
 
 export class VerbatimNode implements Node {
-    constructor(private content: string) {}
+    constructor(
+        public open: DirectiveNode,
+        public close: DirectiveNode,
+        public content: string,
+    ) {}
 
     toDoc(): Doc {
         // We're doing a bit of trick here where we replace the verbatim tags after formatting as HTML
         // so we get correct indentation.
         const fakeHtml = formatAsHtml(`
             <verbatim-block>
-                ${this.toString()}
+                ${this.content}
             </verbatim-block>
         `);
 
@@ -137,7 +141,7 @@ export class VerbatimNode implements Node {
     }
 
     toString(): string {
-        return this.content;
+        throw new Error("Not possible.");
     }
 }
 

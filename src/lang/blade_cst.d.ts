@@ -24,6 +24,7 @@ export type ContentCstChildren = {
     comment?: CommentCstNode[];
     escapedEcho?: EscapedEchoCstNode[];
     escapedRawEcho?: EscapedRawEchoCstNode[];
+    verbatimBlockDirective?: VerbatimBlockDirectiveCstNode[];
 };
 
 export interface DirectiveCstNode extends CstNode {
@@ -187,6 +188,35 @@ export type IfDirectiveBlockCstChildren = {
     endDirective: EndIfDirectiveCstNode[];
 };
 
+export interface StartVerbatimDirectiveCstNode extends CstNode {
+    name: "startVerbatimDirective";
+    children: StartVerbatimDirectiveCstChildren;
+}
+
+export type StartVerbatimDirectiveCstChildren = {
+    StartVerbatimDirective: IToken[];
+};
+
+export interface EndVerbatimDirectiveCstNode extends CstNode {
+    name: "endVerbatimDirective";
+    children: EndVerbatimDirectiveCstChildren;
+}
+
+export type EndVerbatimDirectiveCstChildren = {
+    EndVerbatimDirective: IToken[];
+};
+
+export interface VerbatimBlockDirectiveCstNode extends CstNode {
+    name: "verbatimBlockDirective";
+    children: VerbatimBlockDirectiveCstChildren;
+}
+
+export type VerbatimBlockDirectiveCstChildren = {
+    startDirective: StartVerbatimDirectiveCstNode[];
+    content?: ContentCstNode[];
+    endDirective: EndVerbatimDirectiveCstNode[];
+};
+
 export interface ICstNodeVisitor<IN, OUT> extends ICstVisitor<IN, OUT> {
     blade(children: BladeCstChildren, param?: IN): OUT;
     content(children: ContentCstChildren, param?: IN): OUT;
@@ -207,4 +237,7 @@ export interface ICstNodeVisitor<IN, OUT> extends ICstVisitor<IN, OUT> {
     elseBlock(children: ElseBlockCstChildren, param?: IN): OUT;
     elseIfBlock(children: ElseIfBlockCstChildren, param?: IN): OUT;
     ifDirectiveBlock(children: IfDirectiveBlockCstChildren, param?: IN): OUT;
+    startVerbatimDirective(children: StartVerbatimDirectiveCstChildren, param?: IN): OUT;
+    endVerbatimDirective(children: EndVerbatimDirectiveCstChildren, param?: IN): OUT;
+    verbatimBlockDirective(children: VerbatimBlockDirectiveCstChildren, param?: IN): OUT;
 }

@@ -15,6 +15,8 @@ export enum Token {
     ElseIfDirective = "ElseIfDirective",
     ElseDirective = "ElseDirective",
     EndIfDirective = "EndIfDirective",
+    StartVerbatimDirective = "StartVerbatimDirective",
+    EndVerbatimDirective = "EndVerbatimDirective",
 }
 
 enum Mode {
@@ -328,6 +330,55 @@ export const EndIfDirectiveWithArgs = createToken({
     line_breaks: false,
 });
 
+export const StartVerbatimDirectiveWithArgs = createToken({
+    name: Token.StartVerbatimDirective,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            const result = matchDirective(text, startOffset);
+
+            if (result === null) {
+                return null;
+            }
+
+            // Check if `@verbatim` directive
+            if (result.directiveName !== 'verbatim') {
+                return null;
+            }
+
+            return [result.matches];
+        },
+    },
+    start_chars_hint: ["@"],
+    line_breaks: false,
+});
+
+export const EndVerbatimDirectiveWithArgs = createToken({
+    name: Token.EndVerbatimDirective,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            const result = matchDirective(text, startOffset);
+
+            if (result === null) {
+                return null;
+            }
+
+            // Check if `@endverbatim` directive
+            if (result.directiveName !== 'endverbatim') {
+                return null;
+            }
+
+            return [result.matches];
+        },
+    },
+    start_chars_hint: ["@"],
+    line_breaks: false,
+});
 
 export const Literal = createToken({
     name: Token.Literal,
@@ -340,6 +391,8 @@ export const allTokens = {
             Comment,
             RawEcho,
             Echo,
+            StartVerbatimDirectiveWithArgs,
+            EndVerbatimDirectiveWithArgs,
             StartIfDirectiveWithArgs,
             ElseIfDirectiveWithArgs,
             ElseDirectiveWithArgs,
