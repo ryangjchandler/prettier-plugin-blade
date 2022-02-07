@@ -163,11 +163,27 @@ export class DirectiveIfBlockNode implements Node {
     ) {}
 
     toDoc(): Doc {
-        return [];
+        return [
+            this.open.toString(),
+            indent([
+                hardline,
+                ...this.children.map(function (child) {
+                    if (child instanceof LiteralNode) {
+                        return child.toString().trim()
+                    }
+
+                    return child.toDoc();
+                }),
+            ]),
+            hardline,
+            this.elseIfBlocks.map((elseIfBlock) => elseIfBlock.toDoc()),
+            this.elseBlock?.toDoc() ?? [],
+            this.close.toString(),
+        ];
     }
 
     toString(): string {
-        return "";
+        throw new Error("Not possible.");
     }
 }
 
@@ -178,11 +194,24 @@ export class DirectiveElseBlockNode implements Node {
     ) {}
 
     toDoc(): Doc {
-        return [];
+        return [
+            this.elseDirective.toString(),
+            indent([
+                hardline,
+                ...this.children.map(function (child) {
+                    if (child instanceof LiteralNode) {
+                        return child.toString().trim()
+                    }
+
+                    return child.toDoc();
+                }),
+            ]),
+            hardline,
+        ];
     }
 
     toString(): string {
-        return "";
+        throw new Error("Not possible.");
     }
 }
 
@@ -193,10 +222,23 @@ export class DirectiveElseIfBlockNode implements Node {
     ) {}
 
     toDoc(): Doc {
-        return [];
+        return [
+            this.elseIfDirective.toString(),
+            indent([
+                hardline,
+                ...this.children.map(function (child) {
+                    if (child instanceof LiteralNode) {
+                        return child.toString().trim()
+                    }
+
+                    return child.toDoc();
+                }),
+            ]),
+            hardline,
+        ];
     }
 
     toString(): string {
-        return "";
+        throw new Error("Not possible.");
     }
 }
