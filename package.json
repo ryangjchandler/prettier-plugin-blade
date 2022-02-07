@@ -1,6 +1,6 @@
 {
     "name": "@ryangjchandler/prettier-plugin-blade",
-    "main": "dist/src",
+    "main": "dist/src/plugin.js",
     "devDependencies": {
         "@types/argparse": "^2.0.10",
         "@types/jest": "^27.0.0",
