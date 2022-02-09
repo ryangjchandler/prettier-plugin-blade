@@ -9,11 +9,15 @@ export const setOptions = (options: ParserOptions) => {
 };
 
 export const formatAsHtml = (source: string): string => {
-    return format(source, {
-        parser: "html",
-        plugins: [{ parsers: { html: tw.parsers.html } }],
-        tabWidth: pluginOptions?.tabWidth,
-    });
+    try {
+        return format(source, {
+            parser: "html",
+            plugins: [{ parsers: { html: tw.parsers.html } }],
+            tabWidth: pluginOptions?.tabWidth,
+        })
+    } catch (e) {
+        return source
+    }
 };
 
 export const formatAsPhp = (source: string): string => {
