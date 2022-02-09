@@ -82,6 +82,8 @@ export class DirectiveNode implements Node {
     ) {}
 
     toString(): string {
+        const code = formatAsPhp(this.code);
+
         return `@${this.directive}${
             this.code ? `(${formatAsPhp(this.code)})` : ""
         }`;
@@ -224,11 +226,11 @@ export class DirectiveIfBlockNode implements Node {
                     replace: this.open.toString(),
                 },
                 {
-                    search: `\n</if-open-${uuid}>`,
+                    search: new RegExp(`\n?.*<\\/if-open-${uuid}>`),
                     replace: "",
                 },
                 {
-                    search: `\n<if-close-${uuid} />`,
+                    search: new RegExp(`<if-close-${uuid} \\/>`),
                     replace: this.close.toString(),
                 },
             ]
@@ -258,7 +260,7 @@ export class DirectiveElseBlockNode implements Node {
                     replace: this.elseDirective.toString(),
                 },
                 {
-                    search: `</else-${uuid}>`,
+                    search: new RegExp(`\n?.*<\\/else-${uuid}>`),
                     replace: "",
                 },
             ]
