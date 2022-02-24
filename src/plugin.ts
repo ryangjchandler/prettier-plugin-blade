@@ -45,7 +45,7 @@ const replace = (original: string, replacers: Replacer[]): string => {
         replaced = replaced.replace(replacer.search, replacer.replace)
     })
 
-    replaced = replaced.replaceAll(/\s+<div x-delete-x><\/div>/g, "")
+    replaced = replaced.replace(/\s+<div x-delete-x><\/div>/g, "")
 
     return replaced;
 }
