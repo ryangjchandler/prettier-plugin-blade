@@ -1,244 +1,200 @@
-import { TokenType, Token } from "./token";
-import * as Nodes from "./nodes";
+import { CstParser, Rule } from "chevrotain";
 import {
-    DirectiveNode,
-    DirectivePairNode,
-    EchoNode,
-    LiteralNode,
-    Node,
-    EchoType,
-    CommentNode,
-    VerbatimNode,
-} from "./nodes";
-import { ParserOptions } from "prettier";
-import { setOptions } from "../utils";
+    allTokens,
+    BladeLexer,
+    Comment,
+    DirectiveWithArgs,
+    Echo, ElseDirectiveWithArgs, ElseIfDirectiveWithArgs,
+    EndDirectiveWithArgs, EndIfDirectiveWithArgs, EndVerbatimDirectiveWithArgs,
+    EscapedEcho,
+    EscapedRawEcho,
+    Literal,
+    RawEcho, StartDirectiveWithArgs, StartIfDirectiveWithArgs, StartVerbatimDirectiveWithArgs,
+} from "./lexer";
 
-const STATIC_BLOCK_DIRECTIVES = [
-    "if",
-    "for",
-    "foreach",
-    "forelse",
-    "unless",
-    "while",
-    "isset",
-    "empty",
-    "auth",
-    "guest",
-    "production",
-    "env",
-    "hasSection",
-    "sectionMissing",
-    "switch",
-    "once",
-    "verbatim",
-    "error",
-    "push",
-    "prepend",
-];
-
-const isBlockDirective = (directive: DirectiveNode) => {
-    if (STATIC_BLOCK_DIRECTIVES.includes(directive.directive)) {
-        return true;
+class BladeToCSTParser extends CstParser {
+    constructor() {
+        super(allTokens);
+        this.performSelfAnalysis();
     }
 
-    if (directive.directive === "php" && !directive.code) {
-        return true;
-    }
+    public blade = this.RULE("blade", () => {
+        this.MANY(() => {
+            this.SUBRULE(this.content);
+        });
+    });
 
-    // Support for custom directives?
-    return false;
-};
+    private content = this.RULE("content", () => {
+        this.OR([
+            {
+                ALT: () => this.SUBRULE(this.literal),
+            },
+            {
+                ALT: () => this.SUBRULE(this.pairDirective),
+            },
+            {
+                ALT: () => this.SUBRULE(this.directive),
+            },
+            {
+                ALT: () => this.SUBRULE(this.ifDirectiveBlock),
+            },
+            {
+                ALT: () => this.SUBRULE(this.echo),
+            },
+            {
+                ALT: () => this.SUBRULE(this.rawEcho),
+            },
+            {
+                ALT: () => this.SUBRULE(this.comment),
+            },
+            {
+                ALT: () => this.SUBRULE(this.escapedEcho),
+            },
+            {
+                ALT: () => this.SUBRULE(this.escapedRawEcho),
+            },
+            {
+                ALT: () => this.SUBRULE(this.verbatimBlockDirective),
+            },
+        ]);
+    });
 
-const directiveCanBeClosedBy = (open: DirectiveNode, close: DirectiveNode) => {
-    return close.directive === "end" + open.directive;
-};
+    private directive = this.RULE("directive", () => {
+        this.CONSUME(DirectiveWithArgs);
+    });
 
-const isBlockClosingDirective = (directive: DirectiveNode) =>
-    directive.directive.startsWith("end");
-const guessClosingBlockDirective = (directive: DirectiveNode) =>
-    "end" + directive.directive;
+    private endDirective = this.RULE("endDirective", () => {
+        this.CONSUME(EndDirectiveWithArgs);
+    });
 
-export class Parser {
-    private nodes: Node[];
-    private current: Token;
-    private next: Token;
-    private i: number;
-    constructor(private tokens: Token[]) {
-        this.tokens.push(Token.eof());
+    private startDirective = this.RULE("startDirective", () => {
+        this.CONSUME(StartDirectiveWithArgs);
+    });
 
-        this.nodes = [];
-        this.current = Token.eof();
-        this.next = Token.eof();
-        this.i = -1;
-    }
+    private pairDirective = this.RULE("pairDirective", () => {
+        this.SUBRULE(this.startDirective, { LABEL: "startDirective" });
+        this.OPTION(() => {
+            this.MANY(() => {
+                this.SUBRULE(this.content);
+            });
+        });
+        this.SUBRULE2(this.endDirective, { LABEL: "endDirective" });
+    });
 
-    parse() {
-        this.read();
-        this.read();
+    private literal = this.RULE("literal", () => {
+        this.AT_LEAST_ONE(() => {
+            this.CONSUME(Literal);
+        });
+    });
 
-        while (this.current.type !== TokenType.Eof) {
-            this.nodes.push(this.node());
-        }
+    private echo = this.RULE("echo", () => {
+        this.CONSUME(Echo);
+    });
 
-        return this.nodes;
-    }
+    private rawEcho = this.RULE("rawEcho", () => {
+        this.CONSUME(RawEcho);
+    });
 
-    node(): Node {
-        if (this.current.type === TokenType.Echo) {
-            return this.echo();
-        } else if (this.current.type === TokenType.RawEcho) {
-            return this.rawEcho();
-        } else if (this.current.type === TokenType.Directive) {
-            return this.directive();
-        } else if (this.current.type === TokenType.Comment) {
-            return this.comment();
-        } else {
-            const node = new Nodes.LiteralNode(this.current.raw);
-            this.read();
+    private comment = this.RULE("comment", () => {
+        this.CONSUME(Comment);
+    });
 
-            return node;
-        }
-    }
+    private escapedEcho = this.RULE("escapedEcho", () => {
+        this.CONSUME(EscapedEcho);
+    });
 
-    echo(): EchoNode {
-        const node = new Nodes.EchoNode(
-            this.current.raw,
-            this.current.raw.substring(2, this.current.raw.length - 2).trim(),
-            EchoType.Escaped
-        );
-        this.read();
+    private escapedRawEcho = this.RULE("escapedRawEcho", () => {
+        this.CONSUME(EscapedRawEcho);
+    });
 
-        return node;
-    }
+    private startIfDirective = this.RULE("startIfDirective", () => {
+        this.CONSUME(StartIfDirectiveWithArgs)
+    })
 
-    comment(): CommentNode {
-        const node = new Nodes.CommentNode(
-            this.current.raw,
-            this.current.raw.substring(4, this.current.raw.length - 4).trim()
-        );
-        this.read();
+    private endIfDirective = this.RULE("endIfDirective", () => {
+        this.CONSUME(EndIfDirectiveWithArgs)
+    })
 
-        return node;
-    }
+    private elseDirective = this.RULE("elseDirective", () => {
+        this.CONSUME(ElseDirectiveWithArgs)
+    })
 
-    rawEcho(): EchoNode {
-        const node = new Nodes.EchoNode(
-            this.current.raw,
-            this.current.raw.substring(3, this.current.raw.length - 3).trim(),
-            EchoType.Raw
-        );
-        this.read();
+    private elseIfDirective = this.RULE("elseIfDirective", () => {
+        this.CONSUME(ElseIfDirectiveWithArgs)
+    })
 
-        return node;
-    }
+    private elseBlock = this.RULE("elseBlock", () => {
+        this.SUBRULE(this.elseDirective, { LABEL: "elseDirective" })
+        this.OPTION(() => {
+            this.MANY(() => {
+                this.SUBRULE(this.content);
+            });
+        });
+    })
 
-    directive(): DirectiveNode | DirectivePairNode | VerbatimNode {
-        let directiveName = this.current.raw.substring(
-            this.current.raw.indexOf("@") + 1
-        );
+    private elseIfBlock = this.RULE("elseIfBlock", () => {
+        this.SUBRULE(this.elseIfDirective, { LABEL: "elseIfDirective" })
+        this.OPTION(() => {
+            this.MANY(() => {
+                this.SUBRULE(this.content);
+            });
+        });
+    })
 
-        if (directiveName.includes("(")) {
-            directiveName = directiveName.substring(
-                0,
-                directiveName.indexOf("(")
-            );
-        }
-        directiveName = directiveName.trim();
+    private ifDirectiveBlock = this.RULE("ifDirectiveBlock", () => {
+        this.SUBRULE(this.startIfDirective, { LABEL: "startDirective" });
+        this.OPTION(() => {
+            this.MANY(() => {
+                this.SUBRULE(this.content);
+            });
+        });
 
-        let inner = this.current.raw.replace("@" + directiveName, "").trim();
-        if (inner.startsWith("(")) {
-            inner = inner.substring(1);
-        }
+        // Else if blocks
+        this.OPTION1(() => {
+            this.MANY1(() => {
+                this.SUBRULE(this.elseIfBlock);
+            })
+        })
 
-        if (inner.endsWith(")")) {
-            inner = inner.substring(0, inner.length - 1);
-        }
+        // Else block
+        this.OPTION2(() => {
+            this.SUBRULE(this.elseBlock);
+        })
 
-        const directive = new Nodes.DirectiveNode(
-            this.current.raw,
-            directiveName,
-            inner,
-            this.current.line
-        );
+        this.SUBRULE(this.endIfDirective, { LABEL: "endDirective" })
+    })
 
-        this.read();
+    private startVerbatimDirective = this.RULE("startVerbatimDirective", () => {
+        this.CONSUME(StartVerbatimDirectiveWithArgs)
+    })
 
-        if (!isBlockDirective(directive)) {
-            return directive;
-        }
+    private endVerbatimDirective = this.RULE("endVerbatimDirective", () => {
+        this.CONSUME(EndVerbatimDirectiveWithArgs)
+    })
 
-        if (directive.directive === 'verbatim') {
-            return this.verbatim()
-        }
+    private verbatimBlockDirective = this.RULE("verbatimBlockDirective", () => {
+        this.SUBRULE(this.startVerbatimDirective, { LABEL: "startDirective" });
+        this.OPTION(() => {
+            this.MANY(() => {
+                this.SUBRULE(this.content);
+            });
+        });
+        this.SUBRULE2(this.endVerbatimDirective, { LABEL: "endDirective" });
+    });
+}
 
-        let children = [];
-        let close = null;
+export const Parser = new BladeToCSTParser();
 
-        while (this.current.type !== TokenType.Eof) {
-            const child = this.node();
+export const productions: Record<string, Rule> = Parser.getGAstProductions();
 
-            if (
-                child instanceof Nodes.DirectiveNode &&
-                directiveCanBeClosedBy(directive, child)
-            ) {
-                close = child;
-                break;
-            }
+export function parseBlade(text: string) {
+    const lexResult = BladeLexer.tokenize(text);
+    Parser.input = lexResult.tokens;
+    const cst = Parser.blade();
 
-            if (
-                child instanceof Nodes.DirectiveNode &&
-                isBlockClosingDirective(child)
-            ) {
-                throw new Error(
-                    `Unexpected directive ${child.directive} on line ${
-                        child.line
-                    }, expected ${guessClosingBlockDirective(directive)}`
-                );
-            }
-
-            children.push(child);
-        }
-
-        if (close === null) {
-            throw new Error(
-                `Could not find "@end..." directive for "@${directive.directive}" defined on line ${directive.line}.`
-            );
-        }
-
-        return new Nodes.DirectivePairNode(directive, close, children);
-    }
-
-    verbatim(): VerbatimNode { 
-        let code: string = ''
-
-        if (this.current.type === TokenType.Directive && this.current.raw === '@endverbatim') {
-            return new VerbatimNode(code)
-        } else {
-            code += this.current.raw
-        }
-
-        while (true) {
-            if (this.i >= this.tokens.length) {
-                break
-            }
-            
-            this.read()
-
-            if (this.current.type === TokenType.Directive && this.current.raw === '@endverbatim') {
-                this.read()
-                break
-            }
-
-            code += this.current.raw
-        }
-
-        return new VerbatimNode(code)
-    }
-
-    read() {
-        this.i += 1;
-        this.current = this.next;
-        this.next =
-            this.i >= this.tokens.length ? Token.eof() : this.tokens[this.i];
-    }
+    return {
+        cst: cst,
+        lexErrors: lexResult.errors,
+        parseErrors: Parser.errors,
+    };
 }

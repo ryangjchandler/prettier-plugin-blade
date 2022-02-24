@@ -1,15 +1,30 @@
-import { doc, format } from "prettier";
-import { builders } from "prettier/doc";
-import { formatAsHtml, formatAsPhp } from "../../utils";
-import Doc = builders.Doc;
+import {formatAsHtml, formatAsPhp} from "../../utils";
+import {randomUUID} from "crypto";
 
-const {
-    builders: { group, softline, indent, line, hardline },
-} = doc;
+export type AsHtml = string | HtmlOutput | AsHtml[]
+
+export interface HtmlOutput {
+    asHtml: AsHtml
+    asReplacer?: AsReplacer
+}
+
+export type AsReplacer = Replacer | string | Replacer[]
+
+export interface Replacer {
+    search: string|RegExp
+    replace: string
+}
+
+const forceHtmlSplit = " <div x-delete-x></div> ";
+
+let id = 1;
+
+const nextId = () => {
+  return ++id;
+}
 
 export interface Node {
-    toDoc(): Doc;
-    toString(): string;
+    toHtml(): HtmlOutput;
 }
 
 export enum EchoType {
@@ -28,6 +43,16 @@ export namespace EchoType {
     }
 }
 
+export class DocumentNode implements Node {
+    constructor(public children: Node[]) {}
+
+    toHtml(): HtmlOutput {
+        return {
+            asHtml: this.children.map((child) => child.toHtml()),
+        };
+    }
+}
+
 export class EchoNode implements Node {
     constructor(
         private content: string,
@@ -35,8 +60,11 @@ export class EchoNode implements Node {
         private type: EchoType
     ) {}
 
-    toDoc(): Doc {
-        return group([this.toString()]);
+    toHtml(): HtmlOutput {
+        return {
+            asHtml: `<echo-${randomUUID()} />`,
+            asReplacer: this.toString(),
+        };
     }
 
     toString(): string {
@@ -50,85 +78,222 @@ export class DirectiveNode implements Node {
     constructor(
         public content: string,
         public directive: string,
-        public code: string,
-        public line: number
+        public code: string
     ) {}
 
-    toDoc(): Doc {
-        return group([this.toString()]);
-    }
-
     toString(): string {
+        const code = formatAsPhp(this.code);
+
         return `@${this.directive}${
             this.code ? `(${formatAsPhp(this.code)})` : ""
         }`;
+    }
+
+    toHtml(): HtmlOutput {
+        return {
+            asHtml: `<directive-${this.directive}-${randomUUID()} />`,
+            asReplacer: this.toString(),
+        };
     }
 }
 
 export class LiteralNode implements Node {
     constructor(private content: string) {}
 
-    toDoc(): Doc {
-        return group(this.toString());
+    toString(): string {
+        return formatAsHtml(this.content);
     }
 
-    toString(): string {
-        return this.content;
+    toHtml(): HtmlOutput {
+        return {
+            asHtml: this.content,
+        }
     }
 }
 
 export class DirectivePairNode implements Node {
     constructor(
-        private open: DirectiveNode,
-        private close: DirectiveNode,
-        private children: Node[]
+        public open: DirectiveNode,
+        public close: DirectiveNode,
+        public children: Node[]
     ) {}
-
-    toDoc(): Doc {
-        return group([
-            this.open.toDoc(),
-            hardline,
-            this.children.map((child) => child.toDoc()),
-            hardline,
-            this.close.toDoc(),
-        ]);
-    }
 
     toString(): string {
         return `${this.open.toString()}${this.children
             .map((child) => child.toString())
             .join()}${this.close.toString()}`;
     }
+
+    toHtml(): HtmlOutput {
+        const uuid = nextId();
+
+        return {
+            asHtml: [
+                `<pair-${uuid}>`,
+                forceHtmlSplit,
+                ...this.children.map((child) => child.toHtml()),
+                ` </pair-${uuid}>`,
+            ],
+            asReplacer: [
+                {
+                    search: `<pair-${uuid}>`,
+                    replace: this.open.toString(),
+                },
+                {
+                    search: `</pair-${uuid}>`,
+                    replace: this.close.toString(),
+                },
+            ]
+        }
+    }
 }
 
 export class VerbatimNode implements Node {
-    constructor(private content: string) {}
-
-    toDoc(): Doc {
-        // We're doing a bit of trick here where we replace the verbatim tags after formatting as HTML
-        // so we get correct indentation.
-        const fakeHtml = formatAsHtml(`
-            <verbatim-block>
-                ${this.toString()}
-            </verbatim-block>
-        `)
-
-        return fakeHtml.replace('<verbatim-block>', '@verbatim').replace('</verbatim-block>', '@endverbatim')
-    }
+    constructor(
+        public open: DirectiveNode,
+        public close: DirectiveNode,
+        public content: string,
+    ) {}
 
     toString(): string {
-        return this.content
+        throw new Error("Not possible.");
+    }
+
+    toHtml(): HtmlOutput {
+        const uuid = nextId();
+
+        return {
+            asHtml: [
+                `<vervatim-${uuid}>`,
+                forceHtmlSplit,
+                this.content,
+                ` </vervatim-${uuid}>`,
+            ],
+            asReplacer: [
+                {
+                    search: `<vervatim-${uuid}>`,
+                    replace: this.open.toString(),
+                },
+                {
+                    search: `</vervatim-${uuid}>`,
+                    replace: this.close.toString(),
+                },
+            ]
+        }
     }
 }
 
 export class CommentNode implements Node {
     constructor(private code: string, private content: string) {}
 
-    toDoc(): Doc {
-        return group([this.toString()]);
-    }
-
     toString(): string {
         return `{{-- ${this.content} --}}`;
+    }
+
+    toHtml(): HtmlOutput {
+        return {
+            asHtml: `<comment-${randomUUID()} />`,
+            asReplacer: this.toString(),
+        }
+    }
+}
+
+export class DirectiveIfBlockNode implements Node {
+    constructor(
+        public open: DirectiveNode,
+        public close: DirectiveNode,
+        public children: Node[],
+        public elseBlock: DirectiveElseBlockNode | null,
+        public elseIfBlocks: DirectiveElseIfBlockNode[],
+    ) {}
+
+    toHtml(): HtmlOutput {
+        const uuid = nextId();
+
+        return {
+            asHtml: [
+                `<if-open-${uuid}>`,
+                forceHtmlSplit,
+                ...this.children.map((child) => child.toHtml()),
+                ` </if-open-${uuid}> `,
+                this.elseIfBlocks.map((block) => block.toHtml()),
+                this.elseBlock?.toHtml() ?? [],
+                ` <if-close-${uuid} />`,
+            ],
+            asReplacer: [
+                {
+                    search: `<if-open-${uuid}>`,
+                    replace: this.open.toString(),
+                },
+                {
+                    search: new RegExp(`\n?.*<\\/if-open-${uuid}>`),
+                    replace: "",
+                },
+                {
+                    search: new RegExp(`<if-close-${uuid} \\/>`),
+                    replace: this.close.toString(),
+                },
+            ]
+        }
+    }
+}
+
+export class DirectiveElseBlockNode implements Node {
+    constructor(
+        public elseDirective: DirectiveNode,
+        public children: Node[]
+    ) {}
+
+    toHtml(): HtmlOutput {
+        const uuid = nextId();
+
+        return {
+            asHtml: [
+                ` <else-${uuid}>`,
+                forceHtmlSplit,
+                ...this.children.map((child) => child.toHtml()),
+                ` </else-${uuid}>`,
+            ],
+            asReplacer: [
+                {
+                    search: `<else-${uuid}>`,
+                    replace: this.elseDirective.toString(),
+                },
+                {
+                    search: new RegExp(`\n?.*<\\/else-${uuid}>`),
+                    replace: "",
+                },
+            ]
+        }
+    }
+}
+
+export class DirectiveElseIfBlockNode implements Node {
+    constructor(
+        public elseIfDirective: DirectiveNode,
+        public children: Node[]
+    ) {}
+
+    toHtml(): HtmlOutput {
+        const uuid = nextId();
+
+        return {
+            asHtml: [
+                ` <else-if-${uuid}>`,
+                forceHtmlSplit,
+                ...this.children.map((child) => child.toHtml()),
+                ` </else-if-${uuid}>`,
+            ],
+            asReplacer: [
+                {
+                    search: `<else-if-${uuid}>`,
+                    replace: this.elseIfDirective.toString(),
+                },
+                {
+                    search: `\n</else-if-${uuid}>`,
+                    replace: "",
+                },
+            ]
+        }
     }
 }

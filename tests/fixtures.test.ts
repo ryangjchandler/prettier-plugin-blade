@@ -15,3 +15,12 @@ test.each(
 
     expect(format(original)).toEqual(expected);
 });
+
+
+it('should test', function () {
+    const [original, expected] = readFile(join(__dirname, "/", "__fixtures__/directive/superfluous-spaces-directive.blade.php"))
+        .split("----")
+        .map((part) => part.trimStart());
+
+    expect(format(original)).toEqual(expected);
+});

@@ -1,0 +1,6 @@
+@isset($records)// $records is defined and is not null...
+@endisset
+----
+@isset($records)
+    // $records is defined and is not null...
+@endisset
