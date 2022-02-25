@@ -101,7 +101,7 @@ export class LiteralNode implements Node {
     constructor(private content: string) {}
 
     toString(): string {
-        return formatAsHtml(this.content);
+        return this.content;
     }
 
     toHtml(): HtmlOutput {
