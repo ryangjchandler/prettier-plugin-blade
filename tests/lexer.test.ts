@@ -65,7 +65,7 @@ it("should generate echo token when starting with double negation", () => {
 });
 
 it("should generate raw echo tokens when wrapped in parenthesis", () => {
-    const tokens = lex("{{!! 'yes' !!}}").filter(
+    const tokens = lex("({!! 'yes' !!})").filter(
         (token) => token.tokenType.name !== Token.Literal
     );
 

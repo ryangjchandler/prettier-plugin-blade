@@ -1,5 +1,10 @@
-import {formatAsHtml, formatAsPhp} from "../../utils";
-import {randomUUID} from "crypto";
+import {
+    formatAsHtml,
+    formatAsPhp,
+    nextId,
+    placeholderElement,
+} from "../../utils";
+import { randomUUID } from "crypto";
 
 export type AsHtml = string | HtmlOutput | AsHtml[]
 
@@ -11,17 +16,11 @@ export interface HtmlOutput {
 export type AsReplacer = Replacer | string | Replacer[]
 
 export interface Replacer {
-    search: string|RegExp
+    search: string | RegExp
     replace: string
 }
 
 const forceHtmlSplit = " <div x-delete-x></div> ";
-
-let id = 1;
-
-const nextId = () => {
-  return ++id;
-}
 
 export interface Node {
     toHtml(): HtmlOutput;
@@ -62,7 +61,7 @@ export class EchoNode implements Node {
 
     toHtml(): HtmlOutput {
         return {
-            asHtml: `<echo-${randomUUID()} />`,
+            asHtml: placeholderElement("e", this.toString()),
             asReplacer: this.toString(),
         };
     }
@@ -192,9 +191,9 @@ export class CommentNode implements Node {
 
     toHtml(): HtmlOutput {
         return {
-            asHtml: `<comment-${randomUUID()} />`,
+            asHtml: placeholderElement("c", this.toString()),
             asReplacer: this.toString(),
-        }
+        };
     }
 }
 

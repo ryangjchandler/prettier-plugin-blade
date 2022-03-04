@@ -133,7 +133,7 @@ function matchDirective(text: string, startOffset: number) {
 
 export const Echo = createToken({
     name: Token.Echo,
-    pattern: /{{\s*(.+?)\s*[^!]}}(\r?\n)?/,
+    pattern: /{{\s*(.+?)\s*}}(\r?\n)?/,
     start_chars_hint: ["{"],
 });
 

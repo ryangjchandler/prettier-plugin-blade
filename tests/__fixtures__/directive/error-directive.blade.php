@@ -13,7 +13,7 @@
 <input
     id="title"
     type="text"
-    class="@error('title') is-invalid @enderror"
+    class="@error("title") is-invalid @enderror"
 />
 
 @error("title")
