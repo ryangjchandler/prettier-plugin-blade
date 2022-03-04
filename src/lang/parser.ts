@@ -10,6 +10,8 @@ import {
     EscapedRawEcho,
     Literal,
     RawEcho, StartDirectiveWithArgs, StartIfDirectiveWithArgs, StartVerbatimDirectiveWithArgs,
+    StartPhpDirective,
+    EndPhpDirective,
 } from "./lexer";
 
 class BladeToCSTParser extends CstParser {
@@ -55,6 +57,9 @@ class BladeToCSTParser extends CstParser {
             },
             {
                 ALT: () => this.SUBRULE(this.verbatimBlockDirective),
+            },
+            {
+                ALT: () => this.SUBRULE(this.phpBlockDirective),
             },
         ]);
     });
@@ -180,6 +185,24 @@ class BladeToCSTParser extends CstParser {
             });
         });
         this.SUBRULE2(this.endVerbatimDirective, { LABEL: "endDirective" });
+    });
+
+    private startPhpDirective = this.RULE("startPhpDirective", () => {
+        this.CONSUME(StartPhpDirective);
+    });
+
+    private endPhpDirective = this.RULE("endPhpDirective", () => {
+        this.CONSUME(EndPhpDirective);
+    });
+
+    private phpBlockDirective = this.RULE("phpBlockDirective", () => {
+        this.SUBRULE(this.startPhpDirective, { LABEL: "startDirective" });
+        this.OPTION(() => {
+            this.MANY(() => {
+                this.SUBRULE(this.content);
+            });
+        });
+        this.SUBRULE2(this.endPhpDirective, { LABEL: "endDirective" });
     });
 }
 

@@ -182,6 +182,25 @@ export class VerbatimNode implements Node {
     }
 }
 
+export class PhpNode implements Node {
+    constructor(
+        public open: DirectiveNode,
+        public close: DirectiveNode,
+        public code: string
+    ) {}
+
+    toHtml(): HtmlOutput {
+        return {
+            asHtml: `<php-${randomUUID()} />`,
+            asReplacer: this.toString(),
+        };
+    }
+
+    toString(): string {
+        return `@php\n\n${formatAsPhp(this.code)}\n\n@endphp`;
+    }
+}
+
 export class CommentNode implements Node {
     constructor(private code: string, private content: string) {}
 

@@ -6,6 +6,7 @@ import {
     DirectiveNode,
     DirectivePairNode,
     DocumentNode, LiteralNode, VerbatimNode,
+    PhpNode,
 } from "../src/lang/nodes";
 
 const parse = (source: string): DocumentNode => {
@@ -172,7 +173,17 @@ it("should parse ast verbatim block", function () {
     expect(verbatimBlock.close.directive).toBe("endverbatim");
 });
 
+it("should parse ast php block", function () {
+    const ast = parse("@php $foo = 'bar' @endphp");
 
+    expect(ast.children).toHaveLength(1);
+
+    const phpBlock = ast.children[0] as PhpNode;
+
+    expect(phpBlock.open.directive).toBe("php");
+    expect(phpBlock.code).toEqual(" $foo = 'bar' ");
+    expect(phpBlock.close.directive).toBe("endphp");
+});
 
 it.todo("should parse ast for par directive with child pair directive");
 

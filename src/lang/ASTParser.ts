@@ -23,6 +23,9 @@ import {
     StartIfDirectiveCstChildren,
     StartVerbatimDirectiveCstChildren,
     VerbatimBlockDirectiveCstChildren,
+    PhpBlockDirectiveCstChildren,
+    StartPhpDirectiveCstChildren,
+    EndPhpDirectiveCstChildren,
 } from "./blade_cst";
 import {
     CommentNode, DirectiveElseBlockNode, DirectiveElseIfBlockNode, DirectiveIfBlockNode,
@@ -33,6 +36,7 @@ import {
     EchoType,
     LiteralNode,
     Node, VerbatimNode,
+    PhpNode,
 } from "./nodes";
 
 const BaseBladeVisitor = Parser.getBaseCstVisitorConstructor();
@@ -65,7 +69,8 @@ export class BladeToAstVisitor
             children.escapedRawEcho ??
             children.pairDirective ??
             children.ifDirectiveBlock ??
-            children.verbatimBlockDirective;
+            children.verbatimBlockDirective ??
+            children.phpBlockDirective;
 
         if (child === undefined) {
             throw new Error("Content should always have at least 1 child.");
@@ -253,6 +258,37 @@ export class BladeToAstVisitor
             closeDirective,
             content ?? "",
         );
+    }
+
+    startPhpDirective(
+        children: StartPhpDirectiveCstChildren,
+        param?: any
+    ): Node {
+        return this.directive({ Directive: children.StartPhpDirective }, param);
+    }
+
+    endPhpDirective(children: EndPhpDirectiveCstChildren, param?: any): Node {
+        return this.directive({ Directive: children.EndPhpDirective }, param);
+    }
+
+    phpBlockDirective(
+        children: PhpBlockDirectiveCstChildren,
+        param?: any
+    ): Node {
+        const openDirective = this.visit(children.startDirective);
+        const closeDirective = this.visit(children.endDirective);
+
+        const content = children.content
+            ?.map((content) => {
+                return Object.values(
+                    Object.values(content.children)[0][0].children
+                )[0]
+                    .map((object: any) => object.image)
+                    .join("");
+            })
+            .join("");
+
+        return new PhpNode(openDirective, closeDirective, content ?? "");
     }
 }
 
