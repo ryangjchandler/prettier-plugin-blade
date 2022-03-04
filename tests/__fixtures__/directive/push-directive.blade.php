@@ -1,5 +1,5 @@
 @push('scripts')<script src="/example.js"></script>@endpush
 ----
-@push('scripts')
+@push("scripts")
     <script src="/example.js"></script>
 @endpush

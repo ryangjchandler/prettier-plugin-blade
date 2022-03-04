@@ -1,5 +1,5 @@
 @prepend('scripts')<script src="/example.js"></script>@endprepend
 ----
-@prepend('scripts')
+@prepend("scripts")
     <script src="/example.js"></script>
 @endprepend

@@ -2,7 +2,7 @@
 ----
 <h1>
     Welcome!
-    @auth('admin')
+    @auth("admin")
         (you are currently admin)
     @endauth
 </h1>

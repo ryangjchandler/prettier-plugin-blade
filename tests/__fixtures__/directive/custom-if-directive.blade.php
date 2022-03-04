@@ -7,14 +7,14 @@ local!
 @unlessdisk('local')something not local@enddisk
 
 ----
-@disk('local')
+@disk("local")
     local!
-@elsedisk('s3')
+@elsedisk("s3")
     s3!
 @else
     not sure?
 @enddisk
 
-@unlessdisk('local')
+@unlessdisk("local")
     something not local
 @enddisk
