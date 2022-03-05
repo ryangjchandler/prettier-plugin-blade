@@ -1,4 +1,4 @@
-<?
+<?php
     echo "something cool @csrf"
     ?>
 <h1>Awesome

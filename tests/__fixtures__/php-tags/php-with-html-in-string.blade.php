@@ -1,4 +1,4 @@
-<?
+<?php
     echo "<title>Some to be happy about</title>"
     ?>
 <h1>Awesome

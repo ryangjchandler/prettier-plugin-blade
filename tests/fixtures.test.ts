@@ -18,7 +18,7 @@ test.each(
 
 
 it('should test', function () {
-    const [original, expected] = readFile(join(__dirname, "/", "__fixtures__/directive/superfluous-spaces-directive.blade.php"))
+    const [original, expected] = readFile(join(__dirname, "/", "__fixtures__/components/component-directive.blade.php"))
         .split("----")
         .map((part) => part.trimStart());
 

@@ -33,6 +33,7 @@ export const terminalDirectives = [
     "isset",
     "empty",
     "guest",
+    "component",
 ];
 
 function matchDirective(text: string, startOffset: number) {
