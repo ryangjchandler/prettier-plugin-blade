@@ -83,17 +83,17 @@ export class DirectiveNode implements Node {
         }
 
         if (this.directive === "for") {
-            code = formatAsPhp(`for (${this.code}) {\n}`).slice(5, -5);
+            code = formatAsPhp(`for (${this.code}) {\n}`).slice(4, -4);
         } else if (
             this.directive === "foreach" ||
             this.directive === "forelse"
         ) {
-            code = formatAsPhp(`foreach (${this.code}) {\n}`).slice(9, -5);
-        } else {
-            code = formatAsPhp(this.code);
+            code = formatAsPhp(`foreach (${this.code}) {\n}`).slice(8, -4);
+        } else if (this.code) {
+            code = formatAsPhp(`a(${this.code})`).substring(1);
         }
 
-        return `@${this.directive}${loopSpacer}${this.code ? `(${code})` : ""}`;
+        return `@${this.directive}${loopSpacer}${code}`;
     }
 
     toHtml(): HtmlOutput {
