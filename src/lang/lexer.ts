@@ -36,6 +36,10 @@ export const terminalDirectives = [
     "empty",
     "guest",
     "component",
+    "for",
+    "foreach",
+    "forelse",
+    "while",
 ];
 
 function matchDirective(text: string, startOffset: number) {
@@ -135,13 +139,13 @@ function matchDirective(text: string, startOffset: number) {
 
 export const Echo = createToken({
     name: Token.Echo,
-    pattern: /{{\s*(.+?)\s*}}(\r?\n)?/,
+    pattern: /{{\s*(.+?)\s*}}/,
     start_chars_hint: ["{"],
 });
 
 export const RawEcho = createToken({
     name: Token.RawEcho,
-    pattern: /{!!\s*(.+?)\s*!!}(\r?\n)?/,
+    pattern: /{!!\s*(.+?)\s*!!}/,
     start_chars_hint: ["{"],
 });
 

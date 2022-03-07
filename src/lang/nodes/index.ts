@@ -75,11 +75,25 @@ export class DirectiveNode implements Node {
     ) {}
 
     toString(): string {
-        const code = formatAsPhp(this.code);
+        var code = "";
+        var loopSpacer = "";
 
-        return `@${this.directive}${
-            this.code ? `(${formatAsPhp(this.code)})` : ""
-        }`;
+        if (["for", "foreach", "forelse", "while"].includes(this.directive)) {
+            loopSpacer = " ";
+        }
+
+        if (this.directive === "for") {
+            code = formatAsPhp(`for (${this.code}) {\n}`).slice(4, -4);
+        } else if (
+            this.directive === "foreach" ||
+            this.directive === "forelse"
+        ) {
+            code = formatAsPhp(`foreach (${this.code}) {\n}`).slice(8, -4);
+        } else if (this.code) {
+            code = formatAsPhp(`a(${this.code})`).substring(1);
+        }
+
+        return `@${this.directive}${loopSpacer}${code}`;
     }
 
     toHtml(): HtmlOutput {
@@ -199,7 +213,7 @@ export class CommentNode implements Node {
     constructor(private code: string, private content: string) {}
 
     toString(): string {
-        return `{{-- ${this.content} --}}`;
+        return `{{-- ${this.content.trim()} --}}`;
     }
 
     toHtml(): HtmlOutput {
