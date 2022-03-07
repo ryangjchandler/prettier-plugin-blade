@@ -17,6 +17,8 @@ export enum Token {
     EndIfDirective = "EndIfDirective",
     StartVerbatimDirective = "StartVerbatimDirective",
     EndVerbatimDirective = "EndVerbatimDirective",
+    StartPhpDirective = "StartPhpDirective",
+    EndPhpDirective = "EndPhpDirective",
 }
 
 enum Mode {
@@ -133,7 +135,7 @@ function matchDirective(text: string, startOffset: number) {
 
 export const Echo = createToken({
     name: Token.Echo,
-    pattern: /{{\s*(.+?)\s*[^!]}}(\r?\n)?/,
+    pattern: /{{\s*(.+?)\s*}}(\r?\n)?/,
     start_chars_hint: ["{"],
 });
 
@@ -381,6 +383,56 @@ export const EndVerbatimDirectiveWithArgs = createToken({
     line_breaks: false,
 });
 
+export const StartPhpDirective = createToken({
+    name: Token.StartPhpDirective,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            const result = matchDirective(text, startOffset);
+
+            if (result === null) {
+                return null;
+            }
+
+            // Check if `@php` directive
+            if (result.directiveName !== "php") {
+                return null;
+            }
+
+            return [result.matches];
+        },
+    },
+    start_chars_hint: ["@"],
+    line_breaks: false,
+});
+
+export const EndPhpDirective = createToken({
+    name: Token.EndPhpDirective,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            const result = matchDirective(text, startOffset);
+
+            if (result === null) {
+                return null;
+            }
+
+            // Check if `@endphp` directive
+            if (result.directiveName !== "endphp") {
+                return null;
+            }
+
+            return [result.matches];
+        },
+    },
+    start_chars_hint: ["@"],
+    line_breaks: false,
+});
+
 export const Literal = createToken({
     name: Token.Literal,
     pattern: /(.|\n)/,
@@ -394,6 +446,8 @@ export const allTokens = {
             Echo,
             StartVerbatimDirectiveWithArgs,
             EndVerbatimDirectiveWithArgs,
+            StartPhpDirective,
+            EndPhpDirective,
             StartIfDirectiveWithArgs,
             ElseIfDirectiveWithArgs,
             ElseDirectiveWithArgs,

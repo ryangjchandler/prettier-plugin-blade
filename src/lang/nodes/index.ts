@@ -1,5 +1,4 @@
-import {formatAsHtml, formatAsPhp} from "../../utils";
-import {randomUUID} from "crypto";
+import { formatAsPhp, nextId, placeholderElement } from "../../utils";
 
 export type AsHtml = string | HtmlOutput | AsHtml[]
 
@@ -11,17 +10,11 @@ export interface HtmlOutput {
 export type AsReplacer = Replacer | string | Replacer[]
 
 export interface Replacer {
-    search: string|RegExp
+    search: string | RegExp
     replace: string
 }
 
 const forceHtmlSplit = " <div x-delete-x></div> ";
-
-let id = 1;
-
-const nextId = () => {
-  return ++id;
-}
 
 export interface Node {
     toHtml(): HtmlOutput;
@@ -62,7 +55,7 @@ export class EchoNode implements Node {
 
     toHtml(): HtmlOutput {
         return {
-            asHtml: `<echo-${randomUUID()} />`,
+            asHtml: placeholderElement("e", this.toString()),
             asReplacer: this.toString(),
         };
     }
@@ -91,7 +84,7 @@ export class DirectiveNode implements Node {
 
     toHtml(): HtmlOutput {
         return {
-            asHtml: `<directive-${this.directive}-${randomUUID()} />`,
+            asHtml: `<directive-${this.directive}-${nextId()} />`,
             asReplacer: this.toString(),
         };
     }
@@ -183,6 +176,25 @@ export class VerbatimNode implements Node {
     }
 }
 
+export class PhpNode implements Node {
+    constructor(
+        public open: DirectiveNode,
+        public close: DirectiveNode,
+        public code: string
+    ) {}
+
+    toHtml(): HtmlOutput {
+        return {
+            asHtml: `<php-${nextId()} />`,
+            asReplacer: this.toString(),
+        };
+    }
+
+    toString(): string {
+        return `@php\n\n${formatAsPhp(this.code)}\n\n@endphp`;
+    }
+}
+
 export class CommentNode implements Node {
     constructor(private code: string, private content: string) {}
 
@@ -192,9 +204,9 @@ export class CommentNode implements Node {
 
     toHtml(): HtmlOutput {
         return {
-            asHtml: `<comment-${randomUUID()} />`,
+            asHtml: placeholderElement("c", this.toString()),
             asReplacer: this.toString(),
-        }
+        };
     }
 }
 
@@ -245,22 +257,22 @@ export class DirectiveElseBlockNode implements Node {
     ) {}
 
     toHtml(): HtmlOutput {
-        const uuid = nextId();
+        const id = nextId();
 
         return {
             asHtml: [
-                ` <else-${uuid}>`,
+                ` <else-${id}>`,
                 forceHtmlSplit,
                 ...this.children.map((child) => child.toHtml()),
-                ` </else-${uuid}>`,
+                ` </else-${id}>`,
             ],
             asReplacer: [
                 {
-                    search: `<else-${uuid}>`,
+                    search: `<else-${id}>`,
                     replace: this.elseDirective.toString(),
                 },
                 {
-                    search: new RegExp(`\n?.*<\\/else-${uuid}>`),
+                    search: new RegExp(`\n?.*<\\/else-${id}>`),
                     replace: "",
                 },
             ]
@@ -275,22 +287,22 @@ export class DirectiveElseIfBlockNode implements Node {
     ) {}
 
     toHtml(): HtmlOutput {
-        const uuid = nextId();
+        const id = nextId();
 
         return {
             asHtml: [
-                ` <else-if-${uuid}>`,
+                ` <else-if-${id}>`,
                 forceHtmlSplit,
                 ...this.children.map((child) => child.toHtml()),
-                ` </else-if-${uuid}>`,
+                ` </else-if-${id}>`,
             ],
             asReplacer: [
                 {
-                    search: `<else-if-${uuid}>`,
+                    search: `<else-if-${id}>`,
                     replace: this.elseIfDirective.toString(),
                 },
                 {
-                    search: `\n</else-if-${uuid}>`,
+                    search: `\n</else-if-${id}>`,
                     replace: "",
                 },
             ]

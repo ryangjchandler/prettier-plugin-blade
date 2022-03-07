@@ -65,7 +65,7 @@ it("should generate echo token when starting with double negation", () => {
 });
 
 it("should generate raw echo tokens when wrapped in parenthesis", () => {
-    const tokens = lex("{{!! 'yes' !!}}").filter(
+    const tokens = lex("({!! 'yes' !!})").filter(
         (token) => token.tokenType.name !== Token.Literal
     );
 
@@ -121,7 +121,7 @@ it("should generate directive tokens", () => {
         "@php @something(true) @some() @some  (true) @some(auth()) @some(')' === '@test')"
     ).filter((token) => token.tokenType.name !== Token.Literal);
 
-    expect(tokens[0]).toHaveProperty("tokenType.name", Token.Directive);
+    expect(tokens[0]).toHaveProperty("tokenType.name", Token.StartPhpDirective);
     expect(tokens[0]).toHaveProperty("image", "@php");
 
     expect(tokens[1]).toHaveProperty("tokenType.name", Token.Directive);
@@ -342,3 +342,29 @@ it("should parse endverbatim directive", function () {
 
 
 it.todo("should parse escaped directive as literal");
+
+describe("php directives", () => {
+    it("should parse php directives", function () {
+        const tokens = lex("@php");
+
+        expect(tokens[0]).toHaveProperty(
+            "tokenType.name",
+            Token.StartPhpDirective
+        );
+        expect(tokens[0]).toHaveProperty("image", "@php");
+
+        expect(tokens).toHaveLength(1);
+    });
+
+    it("should parse endphp directives", function () {
+        const tokens = lex("@endphp");
+
+        expect(tokens[0]).toHaveProperty(
+            "tokenType.name",
+            Token.EndPhpDirective
+        );
+        expect(tokens[0]).toHaveProperty("image", "@endphp");
+
+        expect(tokens).toHaveLength(1);
+    });
+});

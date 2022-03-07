@@ -25,6 +25,7 @@ export type ContentCstChildren = {
     escapedEcho?: EscapedEchoCstNode[];
     escapedRawEcho?: EscapedRawEchoCstNode[];
     verbatimBlockDirective?: VerbatimBlockDirectiveCstNode[];
+    phpBlockDirective?: PhpBlockDirectiveCstNode[];
 };
 
 export interface DirectiveCstNode extends CstNode {
@@ -215,6 +216,35 @@ export type VerbatimBlockDirectiveCstChildren = {
     startDirective: StartVerbatimDirectiveCstNode[];
     content?: ContentCstNode[];
     endDirective: EndVerbatimDirectiveCstNode[];
+};
+
+export interface StartPhpDirectiveCstNode extends CstNode {
+    name: "startPhpDirective";
+    children: StartPhpDirectiveCstChildren;
+}
+
+export type StartPhpDirectiveCstChildren = {
+    StartPhpDirective: IToken[];
+};
+
+export interface EndPhpDirectiveCstNode extends CstNode {
+    name: "endPhpDirective";
+    children: EndPhpDirectiveCstChildren;
+}
+
+export type EndPhpDirectiveCstChildren = {
+    EndPhpDirective: IToken[];
+};
+
+export interface PhpBlockDirectiveCstNode extends CstNode {
+    name: "verbatimBlockDirective";
+    children: PhpBlockDirectiveCstChildren;
+}
+
+export type PhpBlockDirectiveCstChildren = {
+    startDirective: StartPhpDirectiveCstNode[];
+    content?: ContentCstNode[];
+    endDirective: EndPhpDirectiveCstNode[];
 };
 
 export interface ICstNodeVisitor<IN, OUT> extends ICstVisitor<IN, OUT> {
