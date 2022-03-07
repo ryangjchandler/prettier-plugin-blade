@@ -1,10 +1,4 @@
-import {
-    formatAsHtml,
-    formatAsPhp,
-    nextId,
-    placeholderElement,
-} from "../../utils";
-import { randomUUID } from "crypto";
+import { formatAsPhp, nextId, placeholderElement } from "../../utils";
 
 export type AsHtml = string | HtmlOutput | AsHtml[]
 
@@ -90,7 +84,7 @@ export class DirectiveNode implements Node {
 
     toHtml(): HtmlOutput {
         return {
-            asHtml: `<directive-${this.directive}-${randomUUID()} />`,
+            asHtml: `<directive-${this.directive}-${nextId()} />`,
             asReplacer: this.toString(),
         };
     }
@@ -191,7 +185,7 @@ export class PhpNode implements Node {
 
     toHtml(): HtmlOutput {
         return {
-            asHtml: `<php-${randomUUID()} />`,
+            asHtml: `<php-${nextId()} />`,
             asReplacer: this.toString(),
         };
     }
@@ -263,22 +257,22 @@ export class DirectiveElseBlockNode implements Node {
     ) {}
 
     toHtml(): HtmlOutput {
-        const uuid = nextId();
+        const id = nextId();
 
         return {
             asHtml: [
-                ` <else-${uuid}>`,
+                ` <else-${id}>`,
                 forceHtmlSplit,
                 ...this.children.map((child) => child.toHtml()),
-                ` </else-${uuid}>`,
+                ` </else-${id}>`,
             ],
             asReplacer: [
                 {
-                    search: `<else-${uuid}>`,
+                    search: `<else-${id}>`,
                     replace: this.elseDirective.toString(),
                 },
                 {
-                    search: new RegExp(`\n?.*<\\/else-${uuid}>`),
+                    search: new RegExp(`\n?.*<\\/else-${id}>`),
                     replace: "",
                 },
             ]
@@ -293,22 +287,22 @@ export class DirectiveElseIfBlockNode implements Node {
     ) {}
 
     toHtml(): HtmlOutput {
-        const uuid = nextId();
+        const id = nextId();
 
         return {
             asHtml: [
-                ` <else-if-${uuid}>`,
+                ` <else-if-${id}>`,
                 forceHtmlSplit,
                 ...this.children.map((child) => child.toHtml()),
-                ` </else-if-${uuid}>`,
+                ` </else-if-${id}>`,
             ],
             asReplacer: [
                 {
-                    search: `<else-if-${uuid}>`,
+                    search: `<else-if-${id}>`,
                     replace: this.elseIfDirective.toString(),
                 },
                 {
-                    search: `\n</else-if-${uuid}>`,
+                    search: `\n</else-if-${id}>`,
                     replace: "",
                 },
             ]
