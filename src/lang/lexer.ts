@@ -36,6 +36,10 @@ export const terminalDirectives = [
     "empty",
     "guest",
     "component",
+    "for",
+    "foreach",
+    "forelse",
+    "while",
 ];
 
 function matchDirective(text: string, startOffset: number) {

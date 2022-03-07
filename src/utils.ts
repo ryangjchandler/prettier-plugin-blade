@@ -39,6 +39,10 @@ export const formatAsPhp = (source: string): string => {
     let formatted = "";
     let debugOutput = [""];
 
+    if (source === "") {
+        return source;
+    }
+
     if (!manipulated.startsWith("<?php")) {
         manipulated = "<?php " + manipulated;
     }
