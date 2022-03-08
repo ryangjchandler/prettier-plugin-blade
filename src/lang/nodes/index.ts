@@ -76,11 +76,17 @@ export class DirectiveNode implements Node {
 
     toString(): string {
         var code = "";
-        var loopSpacer = "";
-
-        if (["for", "foreach", "forelse", "while"].includes(this.directive)) {
-            loopSpacer = " ";
-        }
+        var spacer = [
+            "for",
+            "foreach",
+            "forelse",
+            "while",
+            "if",
+            "elseif",
+            "unless",
+        ].includes(this.directive)
+            ? " "
+            : "";
 
         if (this.directive === "for") {
             code = formatAsPhp(`for (${this.code}) {\n}`).slice(4, -4);
@@ -93,7 +99,7 @@ export class DirectiveNode implements Node {
             code = formatAsPhp(`a(${this.code})`).substring(1);
         }
 
-        return `@${this.directive}${loopSpacer}${code}`;
+        return `@${this.directive}${spacer}${code}`;
     }
 
     toHtml(): HtmlOutput {
