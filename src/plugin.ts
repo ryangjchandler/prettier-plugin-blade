@@ -1,5 +1,5 @@
 import { AstPath, Doc, Plugin } from "prettier";
-import {AsHtml, AsReplacer, HtmlOutput, Node, Replacer} from "./lang/nodes";
+import { AsHtml, AsReplacer, HtmlOutput, Node, Replacer } from "./lang/nodes";
 import { formatAsHtml, setOptions } from "./utils";
 import { bladeToAstVisitor } from "./lang/ASTParser";
 import { parseBlade } from "./lang/Parser";
@@ -12,7 +12,7 @@ const traverseHtml = (original: AsHtml, replacers: Replacer[]): string => {
     if (original instanceof Array) {
         return original
             .map((asHtml) => traverseHtml(asHtml, replacers))
-            .join("")
+            .join("");
     }
 
     const asHtml = original.asHtml;
@@ -23,32 +23,34 @@ const traverseHtml = (original: AsHtml, replacers: Replacer[]): string => {
             replacers.push({
                 search: asHtml,
                 replace: replacer,
-            })
+            });
         } else {
             if (replacer instanceof Array) {
                 replacers.push(...replacer);
             } else if (typeof replacer === "string") {
-                throw new Error("AsHtml has to be string if replacer is string type.")
+                throw new Error(
+                    "AsHtml has to be string if replacer is string type."
+                );
             } else {
                 replacers.push(replacer);
             }
         }
     }
 
-    return traverseHtml(asHtml, replacers)
-}
+    return traverseHtml(asHtml, replacers);
+};
 
 const replace = (original: string, replacers: Replacer[]): string => {
     let replaced = original;
 
     replacers.forEach((replacer) => {
-        replaced = replaced.replace(replacer.search, replacer.replace)
-    })
+        replaced = replaced.replace(replacer.search, replacer.replace);
+    });
 
-    replaced = replaced.replace(/\s+<div x-delete-x><\/div>/g, "")
+    replaced = replaced.replace(/\s+<div x-delete-x><\/div>/g, "");
 
     return replaced;
-}
+};
 
 const plugin: Plugin = {
     languages: [
@@ -85,7 +87,7 @@ const plugin: Plugin = {
 
                 const formattedHtml = formatAsHtml(html);
 
-                const replacedHtml = replace(formattedHtml, replacers)
+                const replacedHtml = replace(formattedHtml, replacers);
 
                 return replacedHtml;
             },

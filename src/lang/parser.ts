@@ -4,12 +4,19 @@ import {
     BladeLexer,
     Comment,
     DirectiveWithArgs,
-    Echo, ElseDirectiveWithArgs, ElseIfDirectiveWithArgs,
-    EndDirectiveWithArgs, EndIfDirectiveWithArgs, EndVerbatimDirectiveWithArgs,
+    Echo,
+    ElseDirectiveWithArgs,
+    ElseIfDirectiveWithArgs,
+    EndDirectiveWithArgs,
+    EndIfDirectiveWithArgs,
+    EndVerbatimDirectiveWithArgs,
     EscapedEcho,
     EscapedRawEcho,
     Literal,
-    RawEcho, StartDirectiveWithArgs, StartIfDirectiveWithArgs, StartVerbatimDirectiveWithArgs,
+    RawEcho,
+    StartDirectiveWithArgs,
+    StartIfDirectiveWithArgs,
+    StartVerbatimDirectiveWithArgs,
     StartPhpDirective,
     EndPhpDirective,
 } from "./lexer";
@@ -113,38 +120,38 @@ class BladeToCSTParser extends CstParser {
     });
 
     private startIfDirective = this.RULE("startIfDirective", () => {
-        this.CONSUME(StartIfDirectiveWithArgs)
-    })
+        this.CONSUME(StartIfDirectiveWithArgs);
+    });
 
     private endIfDirective = this.RULE("endIfDirective", () => {
-        this.CONSUME(EndIfDirectiveWithArgs)
-    })
+        this.CONSUME(EndIfDirectiveWithArgs);
+    });
 
     private elseDirective = this.RULE("elseDirective", () => {
-        this.CONSUME(ElseDirectiveWithArgs)
-    })
+        this.CONSUME(ElseDirectiveWithArgs);
+    });
 
     private elseIfDirective = this.RULE("elseIfDirective", () => {
-        this.CONSUME(ElseIfDirectiveWithArgs)
-    })
+        this.CONSUME(ElseIfDirectiveWithArgs);
+    });
 
     private elseBlock = this.RULE("elseBlock", () => {
-        this.SUBRULE(this.elseDirective, { LABEL: "elseDirective" })
+        this.SUBRULE(this.elseDirective, { LABEL: "elseDirective" });
         this.OPTION(() => {
             this.MANY(() => {
                 this.SUBRULE(this.content);
             });
         });
-    })
+    });
 
     private elseIfBlock = this.RULE("elseIfBlock", () => {
-        this.SUBRULE(this.elseIfDirective, { LABEL: "elseIfDirective" })
+        this.SUBRULE(this.elseIfDirective, { LABEL: "elseIfDirective" });
         this.OPTION(() => {
             this.MANY(() => {
                 this.SUBRULE(this.content);
             });
         });
-    })
+    });
 
     private ifDirectiveBlock = this.RULE("ifDirectiveBlock", () => {
         this.SUBRULE(this.startIfDirective, { LABEL: "startDirective" });
@@ -158,24 +165,24 @@ class BladeToCSTParser extends CstParser {
         this.OPTION1(() => {
             this.MANY1(() => {
                 this.SUBRULE(this.elseIfBlock);
-            })
-        })
+            });
+        });
 
         // Else block
         this.OPTION2(() => {
             this.SUBRULE(this.elseBlock);
-        })
+        });
 
-        this.SUBRULE(this.endIfDirective, { LABEL: "endDirective" })
-    })
+        this.SUBRULE(this.endIfDirective, { LABEL: "endDirective" });
+    });
 
     private startVerbatimDirective = this.RULE("startVerbatimDirective", () => {
-        this.CONSUME(StartVerbatimDirectiveWithArgs)
-    })
+        this.CONSUME(StartVerbatimDirectiveWithArgs);
+    });
 
     private endVerbatimDirective = this.RULE("endVerbatimDirective", () => {
-        this.CONSUME(EndVerbatimDirectiveWithArgs)
-    })
+        this.CONSUME(EndVerbatimDirectiveWithArgs);
+    });
 
     private verbatimBlockDirective = this.RULE("verbatimBlockDirective", () => {
         this.SUBRULE(this.startVerbatimDirective, { LABEL: "startDirective" });

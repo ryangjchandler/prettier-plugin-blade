@@ -267,7 +267,16 @@ export interface ICstNodeVisitor<IN, OUT> extends ICstVisitor<IN, OUT> {
     elseBlock(children: ElseBlockCstChildren, param?: IN): OUT;
     elseIfBlock(children: ElseIfBlockCstChildren, param?: IN): OUT;
     ifDirectiveBlock(children: IfDirectiveBlockCstChildren, param?: IN): OUT;
-    startVerbatimDirective(children: StartVerbatimDirectiveCstChildren, param?: IN): OUT;
-    endVerbatimDirective(children: EndVerbatimDirectiveCstChildren, param?: IN): OUT;
-    verbatimBlockDirective(children: VerbatimBlockDirectiveCstChildren, param?: IN): OUT;
+    startVerbatimDirective(
+        children: StartVerbatimDirectiveCstChildren,
+        param?: IN
+    ): OUT;
+    endVerbatimDirective(
+        children: EndVerbatimDirectiveCstChildren,
+        param?: IN
+    ): OUT;
+    verbatimBlockDirective(
+        children: VerbatimBlockDirectiveCstChildren,
+        param?: IN
+    ): OUT;
 }

@@ -1,17 +1,17 @@
 import { formatAsPhp, nextId, placeholderElement } from "../../utils";
 
-export type AsHtml = string | HtmlOutput | AsHtml[]
+export type AsHtml = string | HtmlOutput | AsHtml[];
 
 export interface HtmlOutput {
-    asHtml: AsHtml
-    asReplacer?: AsReplacer
+    asHtml: AsHtml;
+    asReplacer?: AsReplacer;
 }
 
-export type AsReplacer = Replacer | string | Replacer[]
+export type AsReplacer = Replacer | string | Replacer[];
 
 export interface Replacer {
-    search: string | RegExp
-    replace: string
+    search: string | RegExp;
+    replace: string;
 }
 
 const forceHtmlSplit = " <div x-delete-x></div> ";
@@ -114,7 +114,7 @@ export class LiteralNode implements Node {
     toHtml(): HtmlOutput {
         return {
             asHtml: this.content,
-        }
+        };
     }
 }
 
@@ -150,8 +150,8 @@ export class DirectivePairNode implements Node {
                     search: `</pair-${uuid}>`,
                     replace: this.close.toString(),
                 },
-            ]
-        }
+            ],
+        };
     }
 }
 
@@ -159,7 +159,7 @@ export class VerbatimNode implements Node {
     constructor(
         public open: DirectiveNode,
         public close: DirectiveNode,
-        public content: string,
+        public content: string
     ) {}
 
     toString(): string {
@@ -185,8 +185,8 @@ export class VerbatimNode implements Node {
                     search: `</vervatim-${uuid}>`,
                     replace: this.close.toString(),
                 },
-            ]
-        }
+            ],
+        };
     }
 }
 
@@ -230,7 +230,7 @@ export class DirectiveIfBlockNode implements Node {
         public close: DirectiveNode,
         public children: Node[],
         public elseBlock: DirectiveElseBlockNode | null,
-        public elseIfBlocks: DirectiveElseIfBlockNode[],
+        public elseIfBlocks: DirectiveElseIfBlockNode[]
     ) {}
 
     toHtml(): HtmlOutput {
@@ -259,16 +259,13 @@ export class DirectiveIfBlockNode implements Node {
                     search: new RegExp(`<if-close-${uuid} \\/>`),
                     replace: this.close.toString(),
                 },
-            ]
-        }
+            ],
+        };
     }
 }
 
 export class DirectiveElseBlockNode implements Node {
-    constructor(
-        public elseDirective: DirectiveNode,
-        public children: Node[]
-    ) {}
+    constructor(public elseDirective: DirectiveNode, public children: Node[]) {}
 
     toHtml(): HtmlOutput {
         const id = nextId();
@@ -289,8 +286,8 @@ export class DirectiveElseBlockNode implements Node {
                     search: new RegExp(`\n?.*<\\/else-${id}>`),
                     replace: "",
                 },
-            ]
-        }
+            ],
+        };
     }
 }
 
@@ -319,7 +316,7 @@ export class DirectiveElseIfBlockNode implements Node {
                     search: `\n</else-if-${id}>`,
                     replace: "",
                 },
-            ]
-        }
+            ],
+        };
     }
 }

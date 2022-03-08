@@ -28,14 +28,18 @@ import {
     EndPhpDirectiveCstChildren,
 } from "./blade_cst";
 import {
-    CommentNode, DirectiveElseBlockNode, DirectiveElseIfBlockNode, DirectiveIfBlockNode,
+    CommentNode,
+    DirectiveElseBlockNode,
+    DirectiveElseIfBlockNode,
+    DirectiveIfBlockNode,
     DirectiveNode,
     DirectivePairNode,
     DocumentNode,
     EchoNode,
     EchoType,
     LiteralNode,
-    Node, VerbatimNode,
+    Node,
+    VerbatimNode,
     PhpNode,
 } from "./nodes";
 
@@ -197,10 +201,7 @@ export class BladeToAstVisitor
             return this.visit(content);
         });
 
-        return new DirectiveElseBlockNode(
-            elseDirective,
-            content ?? []
-        )
+        return new DirectiveElseBlockNode(elseDirective, content ?? []);
     }
 
     elseIfBlock(children: ElseIfBlockCstChildren, param?: any): Node {
@@ -209,55 +210,72 @@ export class BladeToAstVisitor
             return this.visit(content);
         });
 
-        return new DirectiveElseIfBlockNode(
-            elseIfDirective,
-            content ?? []
-        )
+        return new DirectiveElseIfBlockNode(elseIfDirective, content ?? []);
     }
 
     ifDirectiveBlock(children: IfDirectiveBlockCstChildren, param?: any): Node {
         const openDirective = this.visit(children.startDirective);
         const closeDirective = this.visit(children.endDirective);
-        const elseBlock = children.elseBlock === undefined ? null : this.visit(children.elseBlock);
+        const elseBlock =
+            children.elseBlock === undefined
+                ? null
+                : this.visit(children.elseBlock);
         const elseIfBlocks = children.elseIfBlock?.map((elseIfBlock: any) => {
-            return this.visit(elseIfBlock)
-        })
+            return this.visit(elseIfBlock);
+        });
 
         // The content of the first if statement
         const content = children.content?.map((content: any) => {
             return this.visit(content);
         });
 
-        return new DirectiveIfBlockNode (
+        return new DirectiveIfBlockNode(
             openDirective,
             closeDirective,
             content ?? [],
             elseBlock,
-            elseIfBlocks ?? [],
+            elseIfBlocks ?? []
         );
     }
 
-    startVerbatimDirective(children: StartVerbatimDirectiveCstChildren, param?: any): Node {
-        return this.directive({ Directive: children.StartVerbatimDirective }, param);
+    startVerbatimDirective(
+        children: StartVerbatimDirectiveCstChildren,
+        param?: any
+    ): Node {
+        return this.directive(
+            { Directive: children.StartVerbatimDirective },
+            param
+        );
     }
 
-    endVerbatimDirective(children: EndVerbatimDirectiveCstChildren, param?: any): Node {
-        return this.directive({ Directive: children.EndVerbatimDirective }, param);
+    endVerbatimDirective(
+        children: EndVerbatimDirectiveCstChildren,
+        param?: any
+    ): Node {
+        return this.directive(
+            { Directive: children.EndVerbatimDirective },
+            param
+        );
     }
 
-    verbatimBlockDirective(children: VerbatimBlockDirectiveCstChildren, param?: any): Node {
+    verbatimBlockDirective(
+        children: VerbatimBlockDirectiveCstChildren,
+        param?: any
+    ): Node {
         const openDirective = this.visit(children.startDirective);
         const closeDirective = this.visit(children.endDirective);
 
-        const content = children.content?.map((content) => {
-            return Object.values(Object.values(content.children)[0][0].children)[0].map((object: any) => object.image).join("")
-        }).join("")
+        const content = children.content
+            ?.map((content) => {
+                return Object.values(
+                    Object.values(content.children)[0][0].children
+                )[0]
+                    .map((object: any) => object.image)
+                    .join("");
+            })
+            .join("");
 
-        return new VerbatimNode(
-            openDirective,
-            closeDirective,
-            content ?? "",
-        );
+        return new VerbatimNode(openDirective, closeDirective, content ?? "");
     }
 
     startPhpDirective(
