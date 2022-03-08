@@ -197,6 +197,17 @@ it("should generate literal tokens for parenthesis with open parenthesis on next
     expect(tokens).toHaveLength(6);
 });
 
+it("should generate literal tokens for 'fake' directives like Vue and Alpine style event handlers", () => {
+    const input = '@click="foo()"';
+    const tokens = lex(input);
+
+    expect(tokens).toHaveLength(14);
+    tokens.forEach((t, i) => {
+        expect(t).toHaveProperty("tokenType.name", Token.Literal);
+        expect(t).toHaveProperty("image", input.substring(i, i + 1));
+    });
+});
+
 it("should match echo with non php around it", function () {
     const tokens = lex("does it  {{ 'work' }}?").filter(
         (token) => token.tokenType.name !== Token.Literal
