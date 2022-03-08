@@ -79,9 +79,12 @@ export const formatAsPhp = (source: string): string => {
 };
 
 let id = 1;
-
 export const nextId = () => {
-    return ++id;
+    // `id` is just a base 10 int, but we format it into a base36 numeric string
+    // which allows us to pack 1295 possible values into just 2 characters.
+    // This helps us keep our placeholders small and makes it less likely to
+    // incorrectly reflow inline elements like echo statements.
+    return (++id).toString(36);
 };
 
 export const placeholderElement = (prefix: string, content: string): string => {
