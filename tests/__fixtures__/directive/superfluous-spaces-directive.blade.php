@@ -12,11 +12,11 @@ baaad
 </h1>
 ----
 <h1>
-    @if(true)
+    @if (true)
         goood
     @endif
 
-    @if("test" === "test")
+    @if ("test" === "test")
         baaad
     @endif
 </h1>
