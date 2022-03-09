@@ -61,7 +61,7 @@ function matchDirective(text: string, startOffset: number) {
 
     endOffset++;
     charCode = text.charAt(endOffset);
-    let directiveName = ""
+    let directiveName = "";
     // Consume name of directive
     while (/\w/.exec(charCode)) {
         endOffset++;
@@ -251,7 +251,7 @@ export const StartIfDirectiveWithArgs = createToken({
             }
 
             // Check if `@if` directive
-            if (result.directiveName !== 'if') {
+            if (result.directiveName !== "if") {
                 return null;
             }
 
@@ -276,7 +276,7 @@ export const ElseIfDirectiveWithArgs = createToken({
             }
 
             // Check if `@if` directive
-            if (result.directiveName !== 'elseif') {
+            if (result.directiveName !== "elseif") {
                 return null;
             }
 
@@ -301,7 +301,7 @@ export const ElseDirectiveWithArgs = createToken({
             }
 
             // Check if `@if` directive
-            if (result.directiveName !== 'else') {
+            if (result.directiveName !== "else") {
                 return null;
             }
 
@@ -326,7 +326,7 @@ export const EndIfDirectiveWithArgs = createToken({
             }
 
             // Check if `@if` directive
-            if (result.directiveName !== 'endif') {
+            if (result.directiveName !== "endif") {
                 return null;
             }
 
@@ -351,7 +351,7 @@ export const StartVerbatimDirectiveWithArgs = createToken({
             }
 
             // Check if `@verbatim` directive
-            if (result.directiveName !== 'verbatim') {
+            if (result.directiveName !== "verbatim") {
                 return null;
             }
 
@@ -376,7 +376,7 @@ export const EndVerbatimDirectiveWithArgs = createToken({
             }
 
             // Check if `@endverbatim` directive
-            if (result.directiveName !== 'endverbatim') {
+            if (result.directiveName !== "endverbatim") {
                 return null;
             }
 
