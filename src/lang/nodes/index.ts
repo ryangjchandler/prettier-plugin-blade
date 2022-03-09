@@ -239,7 +239,7 @@ export class CommentNode implements Node {
     constructor(private code: string, private content: string) {}
 
     toString(): string {
-        return `{{-- ${this.content.trim()} --}}`;
+        return this.code;
     }
 
     toHtml(): HtmlOutput {

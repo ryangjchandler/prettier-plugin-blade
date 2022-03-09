@@ -98,22 +98,40 @@ it("should parse multiple no args directives", function () {
     expect(tokens).toHaveLength(2);
 });
 
-it("should generate comment tokens", () => {
-    const tokens = lex("{{-- $test --}}");
+describe("comments", () => {
+    it("should generate comment tokens", () => {
+        const tokens = lex("{{-- $test --}}");
 
-    expect(tokens[0]).toHaveProperty("tokenType.name", Token.Comment);
-    expect(tokens[0]).toHaveProperty("image", "{{-- $test --}}");
+        expect(tokens[0]).toHaveProperty("tokenType.name", Token.Comment);
+        expect(tokens[0]).toHaveProperty("image", "{{-- $test --}}");
 
-    expect(tokens).toHaveLength(1);
-});
+        expect(tokens).toHaveLength(1);
+    });
 
-it("should generate comment tokens without spaces", () => {
-    const tokens = lex("{{--$test--}}");
+    it("should generate comment tokens without spaces", () => {
+        const tokens = lex("{{--$test--}}");
 
-    expect(tokens[0]).toHaveProperty("tokenType.name", Token.Comment);
-    expect(tokens[0]).toHaveProperty("image", "{{--$test--}}");
+        expect(tokens[0]).toHaveProperty("tokenType.name", Token.Comment);
+        expect(tokens[0]).toHaveProperty("image", "{{--$test--}}");
 
-    expect(tokens).toHaveLength(1);
+        expect(tokens).toHaveLength(1);
+    });
+
+    it("should recognize multi-line comments", () => {
+        const tokens = lex(`{{--
+            -- $test
+            --}}`);
+
+        expect(tokens[0]).toHaveProperty("tokenType.name", Token.Comment);
+        expect(tokens[0]).toHaveProperty(
+            "image",
+            `{{--
+            -- $test
+            --}}`
+        );
+
+        expect(tokens).toHaveLength(1);
+    });
 });
 
 it("should generate directive tokens", () => {
