@@ -3,7 +3,8 @@ import { format, ParserOptions } from "prettier";
 import php from "@prettier/plugin-php/standalone";
 const tw = require("prettier-plugin-tailwindcss");
 
-const debug = false;
+const htmlDebug = false;
+const phpDebug = false;
 
 let pluginOptions: ParserOptions;
 export const setOptions = (options: ParserOptions) => {
@@ -14,7 +15,7 @@ export const formatAsHtml = (source: string): string => {
     let formatted = "";
     let debugOutput = [""];
 
-    debug && debugOutput.push(`source:    '${source}'`);
+    htmlDebug && debugOutput.push(`source:    '${source}'`);
 
     try {
         formatted = format(source, {
@@ -23,13 +24,13 @@ export const formatAsHtml = (source: string): string => {
             tabWidth: pluginOptions?.tabWidth,
         });
     } catch (e) {
-        debug && debugOutput.push("error: defaulting to source");
+        htmlDebug && debugOutput.push("error: defaulting to source");
 
         formatted = source;
     }
 
-    debug && debugOutput.push(`formatted: '${formatted}'`);
-    debug && console.log("formatAsHtml", debugOutput.join(`\n`));
+    htmlDebug && debugOutput.push(`formatted: '${formatted}'`);
+    htmlDebug && console.log("formatAsHtml", debugOutput.join(`\n`));
 
     return formatted;
 };
@@ -51,15 +52,15 @@ export const formatAsPhp = (source: string): string => {
         manipulated += ";";
     }
 
-    debug && debugOutput.push(`source:      '${source}'`);
-    debug && debugOutput.push(`manipulated: '${manipulated}'`);
+    phpDebug && debugOutput.push(`source:      '${source}'`);
+    phpDebug && debugOutput.push(`manipulated: '${manipulated}'`);
 
     try {
         formatted = format(manipulated, { parser: "php", plugins: [php] })
             .replace("<?php ", "")
             .trim();
     } catch (e) {
-        debug && debugOutput.push("error: defaulting to source");
+        phpDebug && debugOutput.push("error: defaulting to source");
 
         // Fallback to original source if php formatter fails
         formatted = source;
@@ -71,8 +72,8 @@ export const formatAsPhp = (source: string): string => {
         formatted = formatted.substring(0, formatted.length - 1);
     }
 
-    debug && debugOutput.push(`formatted:   '${formatted}'`);
-    debug && console.log("formatAsPhp", debugOutput.join(`\n`));
+    phpDebug && debugOutput.push(`formatted:   '${formatted}'`);
+    phpDebug && console.log("formatAsPhp", debugOutput.join(`\n`));
 
     return formatted;
 };
