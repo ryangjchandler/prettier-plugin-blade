@@ -5,7 +5,9 @@ import {
     DirectiveIfBlockNode,
     DirectiveNode,
     DirectivePairNode,
-    DocumentNode, LiteralNode, VerbatimNode,
+    DocumentNode,
+    LiteralNode,
+    VerbatimNode,
     PhpNode,
 } from "../src/lang/nodes";
 
@@ -79,7 +81,7 @@ it("should parse ast for multiple directive ", function () {
 });
 
 it("should parse ast @if @endif directive block", function () {
-    const ast = parse('@if(true) cool @endif');
+    const ast = parse("@if(true) cool @endif");
 
     expect(ast.children).toHaveLength(1);
 
@@ -92,7 +94,7 @@ it("should parse ast @if @endif directive block", function () {
 });
 
 it("should parse ast @if @else @endif directive block", function () {
-    const ast = parse('@if(false) nice @else not as cool @endif');
+    const ast = parse("@if(false) nice @else not as cool @endif");
 
     expect(ast.children).toHaveLength(1);
 
@@ -111,7 +113,9 @@ it("should parse ast @if @else @endif directive block", function () {
 });
 
 it("should parse ast @if @elseif @else @endif directive block", function () {
-    const ast = parse('@if(false) nice @elseif("monkey") cat @else not as nice @endif');
+    const ast = parse(
+        '@if(false) nice @elseif("monkey") cat @else not as nice @endif'
+    );
 
     expect(ast.children).toHaveLength(1);
 
@@ -127,7 +131,6 @@ it("should parse ast @if @elseif @else @endif directive block", function () {
     expect(elseIfBlockNode.children).toHaveLength(1);
     expect(elseIfBlockNode.children[0].toString()).toBe(" cat ");
 
-
     const elseBlockNode = ifBlockNode.elseBlock;
     expect(elseBlockNode?.elseDirective.directive).toBe("else");
     expect(elseBlockNode?.children).toHaveLength(1);
@@ -137,7 +140,9 @@ it("should parse ast @if @elseif @else @endif directive block", function () {
 });
 
 it("should parse ast @if block with multiple elseif", function () {
-    const ast = parse('@if("snake") snake @elseif("monkey") monkey @elseif("human") human @endif');
+    const ast = parse(
+        '@if("snake") snake @elseif("monkey") monkey @elseif("human") human @endif'
+    );
 
     expect(ast.children).toHaveLength(1);
 
@@ -162,14 +167,14 @@ it("should parse ast @if block with multiple elseif", function () {
 });
 
 it("should parse ast verbatim block", function () {
-    const ast = parse('@verbatim gg wp {{well}} @endverbatim');
+    const ast = parse("@verbatim gg wp {{well}} @endverbatim");
 
     expect(ast.children).toHaveLength(1);
 
     const verbatimBlock = ast.children[0] as VerbatimNode;
 
     expect(verbatimBlock.open.directive).toBe("verbatim");
-    expect(verbatimBlock.content).toEqual(" gg wp {{well}} ")
+    expect(verbatimBlock.content).toEqual(" gg wp {{well}} ");
     expect(verbatimBlock.close.directive).toBe("endverbatim");
 });
 

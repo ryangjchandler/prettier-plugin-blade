@@ -272,10 +272,7 @@ it("should parse if directive", function () {
     const tokens = lex("@if(true)");
 
     expect(tokens[0]).toHaveProperty("tokenType.name", Token.StartIfDirective);
-    expect(tokens[0]).toHaveProperty(
-        "image",
-        "@if(true)"
-    );
+    expect(tokens[0]).toHaveProperty("image", "@if(true)");
 
     expect(tokens).toHaveLength(1);
 });
@@ -284,10 +281,7 @@ it("should parse elseif directive", function () {
     const tokens = lex("@elseif(true)");
 
     expect(tokens[0]).toHaveProperty("tokenType.name", Token.ElseIfDirective);
-    expect(tokens[0]).toHaveProperty(
-        "image",
-        "@elseif(true)"
-    );
+    expect(tokens[0]).toHaveProperty("image", "@elseif(true)");
 
     expect(tokens).toHaveLength(1);
 });
@@ -296,10 +290,7 @@ it("should parse else directive", function () {
     const tokens = lex("@else");
 
     expect(tokens[0]).toHaveProperty("tokenType.name", Token.ElseDirective);
-    expect(tokens[0]).toHaveProperty(
-        "image",
-        "@else"
-    );
+    expect(tokens[0]).toHaveProperty("image", "@else");
 
     expect(tokens).toHaveLength(1);
 });
@@ -308,10 +299,7 @@ it("should parse endif directive", function () {
     const tokens = lex("@endif");
 
     expect(tokens[0]).toHaveProperty("tokenType.name", Token.EndIfDirective);
-    expect(tokens[0]).toHaveProperty(
-        "image",
-        "@endif"
-    );
+    expect(tokens[0]).toHaveProperty("image", "@endif");
 
     expect(tokens).toHaveLength(1);
 });
@@ -319,11 +307,11 @@ it("should parse endif directive", function () {
 it("should parse verbatim directive", function () {
     const tokens = lex("@verbatim");
 
-    expect(tokens[0]).toHaveProperty("tokenType.name", Token.StartVerbatimDirective);
     expect(tokens[0]).toHaveProperty(
-        "image",
-        "@verbatim"
+        "tokenType.name",
+        Token.StartVerbatimDirective
     );
+    expect(tokens[0]).toHaveProperty("image", "@verbatim");
 
     expect(tokens).toHaveLength(1);
 });
@@ -331,15 +319,14 @@ it("should parse verbatim directive", function () {
 it("should parse endverbatim directive", function () {
     const tokens = lex("@endverbatim");
 
-    expect(tokens[0]).toHaveProperty("tokenType.name", Token.EndVerbatimDirective);
     expect(tokens[0]).toHaveProperty(
-        "image",
-        "@endverbatim"
+        "tokenType.name",
+        Token.EndVerbatimDirective
     );
+    expect(tokens[0]).toHaveProperty("image", "@endverbatim");
 
     expect(tokens).toHaveLength(1);
 });
-
 
 it.todo("should parse escaped directive as literal");
 
