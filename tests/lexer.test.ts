@@ -119,6 +119,14 @@ describe("echo tokens", () => {
             expect(tokens).toHaveLength(1);
         });
 
+        it("should not generate raw echo token if no ending braces", () => {
+            const tokens = lex("{!!value").filter(
+                (token) => token.tokenType.name !== Token.Literal
+            );
+
+            expect(tokens).toHaveLength(0);
+        });
+
         it("should generate raw echo tokens when wrapped in parenthesis", () => {
             const tokens = lex("({!! 'yes' !!})").filter(
                 (token) => token.tokenType.name !== Token.Literal
@@ -128,6 +136,57 @@ describe("echo tokens", () => {
             expect(tokens[0]).toHaveProperty("image", "{!! 'yes' !!}");
 
             expect(tokens).toHaveLength(1);
+        });
+
+        it("should regognize multiline raw echo tokens", () => {
+            const tokens = lex(`{!!
+                $test
+            !!}`);
+
+            expect(tokens[0]).toHaveProperty("tokenType.name", Token.RawEcho);
+            expect(tokens[0]).toHaveProperty(
+                "image",
+                `{!!
+                $test
+            !!}`
+            );
+
+            expect(tokens).toHaveLength(1);
+        });
+
+        it("should match raw echo with non php around it", function () {
+            const tokens = lex("does it  {!! 'work' !!}?").filter(
+                (token) => token.tokenType.name !== Token.Literal
+            );
+
+            expect(tokens[0]).toHaveProperty("tokenType.name", Token.RawEcho);
+            expect(tokens[0]).toHaveProperty("image", "{!! 'work' !!}");
+
+            expect(tokens).toHaveLength(1);
+        });
+
+        it("should regognize multiline raw echo tokens with non php around it", () => {
+            const tokens = lex(`does it {!!
+                'work'
+            !!}`);
+
+            expect(tokens).toHaveLength(9);
+
+            "does it ".split("").forEach((c, i) => {
+                expect(tokens[i]).toHaveProperty(
+                    "tokenType.name",
+                    Token.Literal
+                );
+                expect(tokens[i]).toHaveProperty("image", c);
+            });
+
+            expect(tokens[8]).toHaveProperty("tokenType.name", Token.RawEcho);
+            expect(tokens[8]).toHaveProperty(
+                "image",
+                `{!!
+                'work'
+            !!}`
+            );
         });
     });
 });

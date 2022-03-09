@@ -216,8 +216,22 @@ export const Echo = createToken({
 
 export const RawEcho = createToken({
     name: Token.RawEcho,
-    pattern: /{!!\s*(.+?)\s*!!}/,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            const result = matchBraces(text, startOffset, "{!!", "!!}");
+
+            if (result === null) {
+                return null;
+            }
+
+            return [result.matches];
+        },
+    },
     start_chars_hint: ["{"],
+    line_breaks: true,
 });
 
 export const Comment = createToken({
