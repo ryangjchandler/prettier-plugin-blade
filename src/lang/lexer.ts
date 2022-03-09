@@ -196,8 +196,22 @@ function matchBraces(
 
 export const Echo = createToken({
     name: Token.Echo,
-    pattern: /{{\s*(.+?)\s*}}/,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            const result = matchBraces(text, startOffset, "{{", "}}");
+
+            if (result === null) {
+                return null;
+            }
+
+            return [result.matches];
+        },
+    },
     start_chars_hint: ["{"],
+    line_breaks: true,
 });
 
 export const RawEcho = createToken({

@@ -11,68 +11,125 @@ const lex = (source: string): IToken[] => {
     return result.tokens;
 };
 
-it("should generate echo tokens", () => {
-    const tokens = lex("{{ $test }}");
+describe("echo tokens", () => {
+    describe("regular echo tokens", () => {
+        it("should generate echo tokens", () => {
+            const tokens = lex("{{ $test }}");
 
-    expect(tokens[0]).toHaveProperty("tokenType.name", Token.Echo);
-    expect(tokens[0]).toHaveProperty("image", "{{ $test }}");
+            expect(tokens[0]).toHaveProperty("tokenType.name", Token.Echo);
+            expect(tokens[0]).toHaveProperty("image", "{{ $test }}");
 
-    expect(tokens).toHaveLength(1);
-});
+            expect(tokens).toHaveLength(1);
+        });
 
-it("should generate echo tokens when no spaces", function () {
-    const tokens = lex("{{$coolStuff}}");
+        it("should generate echo tokens when no spaces", function () {
+            const tokens = lex("{{$coolStuff}}");
 
-    expect(tokens[0]).toHaveProperty("tokenType.name", Token.Echo);
-    expect(tokens[0]).toHaveProperty("image", "{{$coolStuff}}");
+            expect(tokens[0]).toHaveProperty("tokenType.name", Token.Echo);
+            expect(tokens[0]).toHaveProperty("image", "{{$coolStuff}}");
 
-    expect(tokens).toHaveLength(1);
-});
+            expect(tokens).toHaveLength(1);
+        });
 
-it("should generate raw echo tokens", () => {
-    const tokens = lex("{!! $test !!}");
+        it("should not generate echo token if no ending braces", () => {
+            const tokens = lex("{{value").filter(
+                (token) => token.tokenType.name !== Token.Literal
+            );
 
-    expect(tokens[0]).toHaveProperty("tokenType.name", Token.RawEcho);
-    expect(tokens[0]).toHaveProperty("image", "{!! $test !!}");
+            expect(tokens).toHaveLength(0);
+        });
 
-    expect(tokens).toHaveLength(1);
-});
+        it("should regognize multiline echo tokens", () => {
+            const tokens = lex(`{{
+                $test
+            }}`);
 
-it("should generate raw echo tokens without spaces", () => {
-    const tokens = lex("{!!$something!!}");
+            expect(tokens[0]).toHaveProperty("tokenType.name", Token.Echo);
+            expect(tokens[0]).toHaveProperty(
+                "image",
+                `{{
+                $test
+            }}`
+            );
 
-    expect(tokens[0]).toHaveProperty("tokenType.name", Token.RawEcho);
-    expect(tokens[0]).toHaveProperty("image", "{!!$something!!}");
+            expect(tokens).toHaveLength(1);
+        });
 
-    expect(tokens).toHaveLength(1);
-});
+        it("should match echo with non php around it", function () {
+            const tokens = lex("does it  {{ 'work' }}?").filter(
+                (token) => token.tokenType.name !== Token.Literal
+            );
 
-it("should not generate echo token if no ending braces", () => {
-    const tokens = lex("{{value").filter(
-        (token) => token.tokenType.name !== Token.Literal
-    );
+            expect(tokens[0]).toHaveProperty("tokenType.name", Token.Echo);
+            expect(tokens[0]).toHaveProperty("image", "{{ 'work' }}");
 
-    expect(tokens).toHaveLength(0);
-});
+            expect(tokens).toHaveLength(1);
+        });
 
-it("should generate echo token when starting with double negation", () => {
-    const tokens = lex("{{!!$value}}");
+        it("should regognize multiline echo tokens with non php around it", () => {
+            const tokens = lex(`does it {{
+                'work'
+            }}`);
 
-    expect(tokens[0]).toHaveProperty("tokenType.name", Token.Echo);
-    expect(tokens[0]).toHaveProperty("image", "{{!!$value}}");
+            expect(tokens).toHaveLength(9);
 
-    expect(tokens).toHaveLength(1);
-});
+            "does it ".split("").forEach((c, i) => {
+                expect(tokens[i]).toHaveProperty(
+                    "tokenType.name",
+                    Token.Literal
+                );
+                expect(tokens[i]).toHaveProperty("image", c);
+            });
 
-it("should generate raw echo tokens when wrapped in parenthesis", () => {
-    const tokens = lex("({!! 'yes' !!})").filter(
-        (token) => token.tokenType.name !== Token.Literal
-    );
+            expect(tokens[8]).toHaveProperty("tokenType.name", Token.Echo);
+            expect(tokens[8]).toHaveProperty(
+                "image",
+                `{{
+                'work'
+            }}`
+            );
+        });
+    });
 
-    expect(tokens[0]).toHaveProperty("tokenType.name", Token.RawEcho);
-    expect(tokens[0]).toHaveProperty("image", "{!! 'yes' !!}");
+    describe("raw echo tokens", () => {
+        it("should generate raw echo tokens", () => {
+            const tokens = lex("{!! $test !!}");
 
-    expect(tokens).toHaveLength(1);
+            expect(tokens[0]).toHaveProperty("tokenType.name", Token.RawEcho);
+            expect(tokens[0]).toHaveProperty("image", "{!! $test !!}");
+
+            expect(tokens).toHaveLength(1);
+        });
+
+        it("should generate raw echo tokens without spaces", () => {
+            const tokens = lex("{!!$something!!}");
+
+            expect(tokens[0]).toHaveProperty("tokenType.name", Token.RawEcho);
+            expect(tokens[0]).toHaveProperty("image", "{!!$something!!}");
+
+            expect(tokens).toHaveLength(1);
+        });
+
+        it("should generate echo token when starting with double negation", () => {
+            const tokens = lex("{{!!$value}}");
+
+            expect(tokens[0]).toHaveProperty("tokenType.name", Token.Echo);
+            expect(tokens[0]).toHaveProperty("image", "{{!!$value}}");
+
+            expect(tokens).toHaveLength(1);
+        });
+
+        it("should generate raw echo tokens when wrapped in parenthesis", () => {
+            const tokens = lex("({!! 'yes' !!})").filter(
+                (token) => token.tokenType.name !== Token.Literal
+            );
+
+            expect(tokens[0]).toHaveProperty("tokenType.name", Token.RawEcho);
+            expect(tokens[0]).toHaveProperty("image", "{!! 'yes' !!}");
+
+            expect(tokens).toHaveLength(1);
+        });
+    });
 });
 
 it("should parse directive if ended with space", function () {
@@ -224,17 +281,6 @@ it("should generate literal tokens for 'fake' directives like Vue and Alpine sty
         expect(t).toHaveProperty("tokenType.name", Token.Literal);
         expect(t).toHaveProperty("image", input.substring(i, i + 1));
     });
-});
-
-it("should match echo with non php around it", function () {
-    const tokens = lex("does it  {{ 'work' }}?").filter(
-        (token) => token.tokenType.name !== Token.Literal
-    );
-
-    expect(tokens[0]).toHaveProperty("tokenType.name", Token.Echo);
-    expect(tokens[0]).toHaveProperty("image", "{{ 'work' }}");
-
-    expect(tokens).toHaveLength(1);
 });
 
 it("should parse space as literal", function () {
