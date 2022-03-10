@@ -28,17 +28,20 @@ enum Mode {
 
 export const terminalDirectives = [
     "auth",
-    "prepend",
-    "push",
-    "error",
-    "unless",
-    "isset",
-    "empty",
-    "guest",
+    "can",
     "component",
+    "empty",
+    "error",
     "for",
     "foreach",
     "forelse",
+    "guest",
+    "isset",
+    "once",
+    "prepend",
+    "push",
+    "pushOnce",
+    "unless",
     "while",
 ];
 
