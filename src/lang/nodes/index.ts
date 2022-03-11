@@ -1,4 +1,9 @@
-import { formatAsPhp, nextId, placeholderElement } from "../../utils";
+import {
+    formatAsPhp,
+    nextId,
+    placeholderString,
+    placeholderElement,
+} from "../../utils";
 
 export type AsHtml = string | HtmlOutput | AsHtml[];
 
@@ -55,7 +60,7 @@ export class EchoNode implements Node {
 
     toHtml(): HtmlOutput {
         return {
-            asHtml: placeholderElement("e", this.toString()),
+            asHtml: placeholderString("e", this.toString()),
             asReplacer: this.toString(),
         };
     }
@@ -218,7 +223,7 @@ export class CommentNode implements Node {
 
     toHtml(): HtmlOutput {
         return {
-            asHtml: placeholderElement("c", this.toString()),
+            asHtml: placeholderString("c", this.toString()),
             asReplacer: this.toString(),
         };
     }

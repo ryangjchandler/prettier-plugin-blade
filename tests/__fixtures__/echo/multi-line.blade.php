@@ -1,9 +1,9 @@
-{{ $foo ->bar(  ) }}
+<div>{{ $foo ->bar(  ) }}</div>
 
-{{
-  $abc
-    ->def()
-}}
+<div>{{
+    $abc
+      ->def()
+  }}</div>
 
 {{ fizz()->buzz()->fuzz() }}
 
@@ -13,9 +13,9 @@
     ->ghi()
 }}
 ----
-{{ $foo->bar() }}
+<div>{{ $foo->bar() }}</div>
 
-{{ $abc->def() }}
+<div>{{ $abc->def() }}</div>
 
 {{
   fizz()
