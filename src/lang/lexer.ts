@@ -80,8 +80,15 @@ function matchDirective(text: string, startOffset: number) {
         charCode = text.charAt(possibleEndOffset);
     }
 
-    // Check if next char is an open parenthesis
     charCode = text.charAt(possibleEndOffset);
+
+    // If the next char is `=`, then this might be a Vue or Alpine-style event
+    // binding. Regardless, it's not a directive!
+    if (charCode == "=") {
+        return null;
+    }
+
+    // Check if next char is an open parenthesis
     if (charCode == "(") {
         let parentheses = 1;
         let inSingleComment = false;
