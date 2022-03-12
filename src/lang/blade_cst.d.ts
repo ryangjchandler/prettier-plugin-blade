@@ -19,6 +19,7 @@ export type ContentCstChildren = {
     pairDirective?: PairDirectiveCstNode[];
     directive?: DirectiveCstNode[];
     ifDirectiveBlock?: IfDirectiveBlockCstNode[];
+    forElseDirectiveBlock?: ForElseDirectiveBlockCstNode[];
     echo?: EchoCstNode[];
     rawEcho?: RawEchoCstNode[];
     comment?: CommentCstNode[];
@@ -125,8 +126,17 @@ export interface StartIfDirectiveCstNode extends CstNode {
     children: StartIfDirectiveCstChildren;
 }
 
+export interface StartForElseDirectiveCstNode extends CstNode {
+    name: "startForElseDirective";
+    children: StartForElseDirectiveCstChildren;
+}
+
 export type StartIfDirectiveCstChildren = {
     StartIfDirective: IToken[];
+};
+
+export type StartForElseDirectiveCstChildren = {
+    StartForElseDirective: IToken[];
 };
 
 export interface EndIfDirectiveCstNode extends CstNode {
@@ -134,8 +144,17 @@ export interface EndIfDirectiveCstNode extends CstNode {
     children: EndIfDirectiveCstChildren;
 }
 
+export interface EndForElseDirectiveCstNode extends CstNode {
+    name: "endForElseDirective";
+    children: EndForElseDirectiveCstChildren;
+}
+
 export type EndIfDirectiveCstChildren = {
     EndIfDirective: IToken[];
+};
+
+export type EndForElseDirectiveCstChildren = {
+    EndForElseDirective: IToken[];
 };
 
 export interface ElseDirectiveCstNode extends CstNode {
@@ -143,8 +162,17 @@ export interface ElseDirectiveCstNode extends CstNode {
     children: ElseDirectiveCstChildren;
 }
 
+export interface EmptyDirectiveCstNode extends CstNode {
+    name: "emptyDirective";
+    children: EmptyDirectiveCstChildren;
+}
+
 export type ElseDirectiveCstChildren = {
     ElseDirective: IToken[];
+};
+
+export type EmptyDirectiveCstChildren = {
+    EmptyDirective: IToken[];
 };
 
 export interface ElseIfDirectiveCstNode extends CstNode {
@@ -161,8 +189,18 @@ export interface ElseBlockCstNode extends CstNode {
     children: ElseBlockCstChildren;
 }
 
+export interface EmptyBlockCstNode extends CstNode {
+    name: "emptyBlock";
+    children: EmptyBlockCstChildren;
+}
+
 export type ElseBlockCstChildren = {
     elseDirective: ElseDirectiveCstNode[];
+    content?: ContentCstNode[];
+};
+
+export type EmptyBlockCstChildren = {
+    emptyDirective: EmptyDirectiveCstNode[];
     content?: ContentCstNode[];
 };
 
@@ -181,12 +219,24 @@ export interface IfDirectiveBlockCstNode extends CstNode {
     children: IfDirectiveBlockCstChildren;
 }
 
+export interface ForElseDirectiveBlockCstNode extends CstNode {
+    name: "forElseDirectiveBlock";
+    children: ForElseDirectiveBlockCstChildren;
+}
+
 export type IfDirectiveBlockCstChildren = {
     startDirective: StartIfDirectiveCstNode[];
     content?: ContentCstNode[];
     elseIfBlock?: ElseIfBlockCstNode[];
     elseBlock?: ElseBlockCstNode[];
     endDirective: EndIfDirectiveCstNode[];
+};
+
+export type ForElseDirectiveBlockCstChildren = {
+    startDirective: StartForElseDirectiveCstNode[];
+    content?: ContentCstNode[];
+    emptyBlock?: EmptyBlockCstNode[];
+    endDirective: EndForElseDirectiveCstNode[];
 };
 
 export interface StartVerbatimDirectiveCstNode extends CstNode {

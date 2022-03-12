@@ -6,7 +6,6 @@
     <li>{{
 $user->name
 }}</li>
-{{-- FIXME this test fails b/c @empty is only recognized as @empty(...) ... @endempty --}}
 @empty
 <p>No users</p>
 @endforelse

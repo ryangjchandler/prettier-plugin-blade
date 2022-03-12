@@ -1,8 +1,9 @@
-import { parseBlade, productions } from "../src/lang/Parser";
+import { parseBlade, productions } from "../src/lang/parser";
 import { bladeToAstVisitor } from "../src/lang/ASTParser";
 import { generateCstDts } from "chevrotain";
 import {
     DirectiveIfBlockNode,
+    DirectiveForElseBlockNode,
     DirectiveNode,
     DirectivePairNode,
     DocumentNode,
@@ -188,6 +189,42 @@ it("should parse ast php block", function () {
     expect(phpBlock.open.directive).toBe("php");
     expect(phpBlock.code).toEqual(" $foo = 'bar' ");
     expect(phpBlock.close.directive).toBe("endphp");
+});
+
+describe("loops", () => {
+    it("should parse ast @forelse @endforelse directive block", function () {
+        const ast = parse("@forelse(true) cool @endforelse");
+
+        expect(ast.children).toHaveLength(1);
+
+        const forElseBlockNode = ast.children[0] as DirectiveForElseBlockNode;
+
+        expect(forElseBlockNode.open.directive).toBe("forelse");
+        expect(forElseBlockNode.children).toHaveLength(1);
+        expect(forElseBlockNode.children[0].toString()).toBe(" cool ");
+        expect(forElseBlockNode.close.directive).toBe("endforelse");
+    });
+
+    it("should parse ast @forelse @empty @endforelse directive block", function () {
+        const ast = parse(
+            "@forelse(false) nice @empty not as cool @endforelse"
+        );
+
+        expect(ast.children).toHaveLength(1);
+
+        const forElseBlockNode = ast.children[0] as DirectiveForElseBlockNode;
+
+        expect(forElseBlockNode.open.directive).toBe("forelse");
+        expect(forElseBlockNode.children).toHaveLength(1);
+        expect(forElseBlockNode.children[0].toString()).toBe(" nice ");
+
+        const elseBlockNode = forElseBlockNode.emptyBlock;
+        expect(elseBlockNode?.emptyDirective.directive).toBe("empty");
+        expect(elseBlockNode?.children).toHaveLength(1);
+        expect(elseBlockNode?.children[0].toString()).toBe(" not as cool ");
+
+        expect(forElseBlockNode.close.directive).toBe("endforelse");
+    });
 });
 
 it.todo("should parse ast for par directive with child pair directive");

@@ -275,6 +275,44 @@ export class DirectiveIfBlockNode implements Node {
     }
 }
 
+export class DirectiveForElseBlockNode implements Node {
+    constructor(
+        public open: DirectiveNode,
+        public close: DirectiveNode,
+        public children: Node[],
+        public emptyBlock: DirectiveEmptyBlockNode | null
+    ) {}
+
+    toHtml(): HtmlOutput {
+        const id = nextId();
+
+        return {
+            asHtml: [
+                `<forelse-open-${id}>`,
+                forceHtmlSplit,
+                ...this.children.map((child) => child.toHtml()),
+                ` </forelse-open-${id}> `,
+                this.emptyBlock?.toHtml() ?? [],
+                ` <forelse-close-${id} />`,
+            ],
+            asReplacer: [
+                {
+                    search: `<forelse-open-${id}>`,
+                    replace: this.open.toString(),
+                },
+                {
+                    search: new RegExp(`\n?.*<\\/forelse-open-${id}>`),
+                    replace: "",
+                },
+                {
+                    search: new RegExp(`<forelse-close-${id} \\/>`),
+                    replace: this.close.toString(),
+                },
+            ],
+        };
+    }
+}
+
 export class DirectiveElseBlockNode implements Node {
     constructor(public elseDirective: DirectiveNode, public children: Node[]) {}
 
@@ -295,6 +333,36 @@ export class DirectiveElseBlockNode implements Node {
                 },
                 {
                     search: new RegExp(`\n?.*<\\/else-${id}>`),
+                    replace: "",
+                },
+            ],
+        };
+    }
+}
+
+export class DirectiveEmptyBlockNode implements Node {
+    constructor(
+        public emptyDirective: DirectiveNode,
+        public children: Node[]
+    ) {}
+
+    toHtml(): HtmlOutput {
+        const id = nextId();
+
+        return {
+            asHtml: [
+                ` <empty-${id}>`,
+                forceHtmlSplit,
+                ...this.children.map((child) => child.toHtml()),
+                ` </empty-${id}>`,
+            ],
+            asReplacer: [
+                {
+                    search: `<empty-${id}>`,
+                    replace: this.emptyDirective.toString(),
+                },
+                {
+                    search: new RegExp(`\n?.*<\\/empty-${id}>`),
                     replace: "",
                 },
             ],
