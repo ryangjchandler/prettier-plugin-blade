@@ -15,6 +15,9 @@ export enum Token {
     ElseIfDirective = "ElseIfDirective",
     ElseDirective = "ElseDirective",
     EndIfDirective = "EndIfDirective",
+    StartForElseDirective = "StartForElseDirective",
+    EmptyDirective = "EmptyDirective",
+    EndForElseDirective = "EndForElseDirective",
     StartVerbatimDirective = "StartVerbatimDirective",
     EndVerbatimDirective = "EndVerbatimDirective",
     StartPhpDirective = "StartPhpDirective",
@@ -30,18 +33,15 @@ export const terminalDirectives = [
     "auth",
     "can",
     "component",
-    "empty",
     "error",
     "for",
     "foreach",
-    "forelse",
     "guest",
     "isset",
     "once",
     "prepend",
     "push",
     "pushOnce",
-    "unless",
     "while",
 ];
 
@@ -260,12 +260,18 @@ export const StartIfDirectiveWithArgs = createToken({
                 return null;
             }
 
-            // Check if `@if` directive
-            if (result.directiveName !== "if") {
-                return null;
+            // Check if `@if`, `@unless` or `@empty` (w/ args) directive
+            if (
+                result.directiveName === "if" ||
+                result.directiveName === "unless" ||
+                (result.directiveName === "empty" &&
+                    result.matches.includes("("))
+            ) {
+                return [result.matches];
             }
 
-            return [result.matches];
+            // no match
+            return null;
         },
     },
     start_chars_hint: ["@"],
@@ -335,8 +341,91 @@ export const EndIfDirectiveWithArgs = createToken({
                 return null;
             }
 
-            // Check if `@if` directive
-            if (result.directiveName !== "endif") {
+            // Check if `@endif`, `@endunless`, `@endempty` directive
+            if (
+                result.directiveName === "endif" ||
+                result.directiveName === "endunless" ||
+                result.directiveName === "endempty"
+            ) {
+                return [result.matches];
+            }
+
+            // no match
+            return null;
+        },
+    },
+    start_chars_hint: ["@"],
+    line_breaks: false,
+});
+
+export const StartForElseDirectiveWithArgs = createToken({
+    name: Token.StartForElseDirective,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            const result = matchDirective(text, startOffset);
+
+            if (result === null) {
+                return null;
+            }
+
+            // Check if `@forelse` directive
+            if (result.directiveName !== "forelse") {
+                return null;
+            }
+
+            return [result.matches];
+        },
+    },
+    start_chars_hint: ["@"],
+    line_breaks: false,
+});
+
+export const EmptyDirectiveWithoutArgs = createToken({
+    name: Token.EmptyDirective,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            const result = matchDirective(text, startOffset);
+
+            if (result === null) {
+                return null;
+            }
+
+            // Check if `@empty` directive w/o args
+            if (
+                result.directiveName === "empty" &&
+                !result.matches.includes("(")
+            ) {
+                return [result.matches];
+            }
+
+            return null;
+        },
+    },
+    start_chars_hint: ["@"],
+    line_breaks: false,
+});
+
+export const EndForElseDirectiveWithArgs = createToken({
+    name: Token.EndForElseDirective,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            const result = matchDirective(text, startOffset);
+
+            if (result === null) {
+                return null;
+            }
+
+            // Check if `@endforelse` directive
+            if (result.directiveName !== "endforelse") {
                 return null;
             }
 
@@ -466,6 +555,9 @@ export const allTokens = {
             ElseIfDirectiveWithArgs,
             ElseDirectiveWithArgs,
             EndIfDirectiveWithArgs,
+            StartForElseDirectiveWithArgs,
+            EmptyDirectiveWithoutArgs,
+            EndForElseDirectiveWithArgs,
             EndDirectiveWithArgs,
             StartDirectiveWithArgs,
             DirectiveWithArgs,

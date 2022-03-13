@@ -2,7 +2,7 @@ import { AstPath, Doc, Plugin } from "prettier";
 import { AsHtml, AsReplacer, HtmlOutput, Node, Replacer } from "./lang/nodes";
 import { formatAsHtml, setOptions } from "./utils";
 import { bladeToAstVisitor } from "./lang/ASTParser";
-import { parseBlade } from "./lang/Parser";
+import { parseBlade } from "./lang/parser";
 
 const traverseHtml = (original: AsHtml, replacers: Replacer[]): string => {
     if (typeof original === "string") {

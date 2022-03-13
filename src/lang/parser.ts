@@ -6,9 +6,11 @@ import {
     DirectiveWithArgs,
     Echo,
     ElseDirectiveWithArgs,
+    EmptyDirectiveWithoutArgs,
     ElseIfDirectiveWithArgs,
     EndDirectiveWithArgs,
     EndIfDirectiveWithArgs,
+    EndForElseDirectiveWithArgs,
     EndVerbatimDirectiveWithArgs,
     EscapedEcho,
     EscapedRawEcho,
@@ -16,6 +18,7 @@ import {
     RawEcho,
     StartDirectiveWithArgs,
     StartIfDirectiveWithArgs,
+    StartForElseDirectiveWithArgs,
     StartVerbatimDirectiveWithArgs,
     StartPhpDirective,
     EndPhpDirective,
@@ -46,6 +49,9 @@ class BladeToCSTParser extends CstParser {
             },
             {
                 ALT: () => this.SUBRULE(this.ifDirectiveBlock),
+            },
+            {
+                ALT: () => this.SUBRULE(this.forElseDirectiveBlock),
             },
             {
                 ALT: () => this.SUBRULE(this.echo),
@@ -174,6 +180,43 @@ class BladeToCSTParser extends CstParser {
         });
 
         this.SUBRULE(this.endIfDirective, { LABEL: "endDirective" });
+    });
+
+    private startForElseDirective = this.RULE("startForElseDirective", () => {
+        this.CONSUME(StartForElseDirectiveWithArgs);
+    });
+
+    private emptyDirective = this.RULE("emptyDirective", () => {
+        this.CONSUME(EmptyDirectiveWithoutArgs);
+    });
+
+    private endForElseDirective = this.RULE("endForElseDirective", () => {
+        this.CONSUME(EndForElseDirectiveWithArgs);
+    });
+
+    private forElseDirectiveBlock = this.RULE("forElseDirectiveBlock", () => {
+        this.SUBRULE(this.startForElseDirective, { LABEL: "startDirective" });
+        this.OPTION(() => {
+            this.MANY(() => {
+                this.SUBRULE(this.content);
+            });
+        });
+
+        // Empty block
+        this.OPTION2(() => {
+            this.SUBRULE(this.emptyBlock);
+        });
+
+        this.SUBRULE(this.endForElseDirective, { LABEL: "endDirective" });
+    });
+
+    private emptyBlock = this.RULE("emptyBlock", () => {
+        this.SUBRULE(this.emptyDirective, { LABEL: "emptyDirective" });
+        this.OPTION(() => {
+            this.MANY(() => {
+                this.SUBRULE(this.content);
+            });
+        });
     });
 
     private startVerbatimDirective = this.RULE("startVerbatimDirective", () => {

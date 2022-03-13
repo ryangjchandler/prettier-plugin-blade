@@ -366,3 +366,41 @@ describe("php directives", () => {
         expect(tokens).toHaveLength(1);
     });
 });
+
+describe("loops", () => {
+    it("should parse forelse directive", function () {
+        const tokens = lex("@forelse(true)");
+
+        expect(tokens[0]).toHaveProperty(
+            "tokenType.name",
+            Token.StartForElseDirective
+        );
+        expect(tokens[0]).toHaveProperty("image", "@forelse(true)");
+
+        expect(tokens).toHaveLength(1);
+    });
+
+    it("should parse empty directive", function () {
+        const tokens = lex("@empty");
+
+        expect(tokens[0]).toHaveProperty(
+            "tokenType.name",
+            Token.EmptyDirective
+        );
+        expect(tokens[0]).toHaveProperty("image", "@empty");
+
+        expect(tokens).toHaveLength(1);
+    });
+
+    it("should parse endforelse directive", function () {
+        const tokens = lex("@endforelse");
+
+        expect(tokens[0]).toHaveProperty(
+            "tokenType.name",
+            Token.EndForElseDirective
+        );
+        expect(tokens[0]).toHaveProperty("image", "@endforelse");
+
+        expect(tokens).toHaveLength(1);
+    });
+});

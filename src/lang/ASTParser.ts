@@ -6,21 +6,26 @@ import {
     DirectiveCstChildren,
     EchoCstChildren,
     ElseBlockCstChildren,
+    EmptyBlockCstChildren,
     ElseDirectiveCstChildren,
+    EmptyDirectiveCstChildren,
     ElseIfBlockCstChildren,
     ElseIfDirectiveCstChildren,
     EndDirectiveCstChildren,
     EndIfDirectiveCstChildren,
+    EndForElseDirectiveCstChildren,
     EndVerbatimDirectiveCstChildren,
     EscapedEchoCstChildren,
     EscapedRawEchoCstChildren,
     ICstNodeVisitor,
     IfDirectiveBlockCstChildren,
+    ForElseDirectiveBlockCstChildren,
     LiteralCstChildren,
     PairDirectiveCstChildren,
     RawEchoCstChildren,
     StartDirectiveCstChildren,
     StartIfDirectiveCstChildren,
+    StartForElseDirectiveCstChildren,
     StartVerbatimDirectiveCstChildren,
     VerbatimBlockDirectiveCstChildren,
     PhpBlockDirectiveCstChildren,
@@ -30,8 +35,10 @@ import {
 import {
     CommentNode,
     DirectiveElseBlockNode,
+    DirectiveEmptyBlockNode,
     DirectiveElseIfBlockNode,
     DirectiveIfBlockNode,
+    DirectiveForElseBlockNode,
     DirectiveNode,
     DirectivePairNode,
     DocumentNode,
@@ -73,6 +80,7 @@ export class BladeToAstVisitor
             children.escapedRawEcho ??
             children.pairDirective ??
             children.ifDirectiveBlock ??
+            children.forElseDirectiveBlock ??
             children.verbatimBlockDirective ??
             children.phpBlockDirective;
 
@@ -183,12 +191,36 @@ export class BladeToAstVisitor
         return this.directive({ Directive: children.StartIfDirective }, param);
     }
 
+    startForElseDirective(
+        children: StartForElseDirectiveCstChildren,
+        param?: any
+    ): Node {
+        return this.directive(
+            { Directive: children.StartForElseDirective },
+            param
+        );
+    }
+
     endIfDirective(children: EndIfDirectiveCstChildren, param?: any): Node {
         return this.directive({ Directive: children.EndIfDirective }, param);
     }
 
+    endForElseDirective(
+        children: EndForElseDirectiveCstChildren,
+        param?: any
+    ): Node {
+        return this.directive(
+            { Directive: children.EndForElseDirective },
+            param
+        );
+    }
+
     elseDirective(children: ElseDirectiveCstChildren, param?: any): Node {
         return this.directive({ Directive: children.ElseDirective }, param);
+    }
+
+    emptyDirective(children: EmptyDirectiveCstChildren, param?: any): Node {
+        return this.directive({ Directive: children.EmptyDirective }, param);
     }
 
     elseIfDirective(children: ElseIfDirectiveCstChildren, param?: any): Node {
@@ -202,6 +234,15 @@ export class BladeToAstVisitor
         });
 
         return new DirectiveElseBlockNode(elseDirective, content ?? []);
+    }
+
+    emptyBlock(children: EmptyBlockCstChildren, param?: any): Node {
+        const emptyDirective = this.visit(children.emptyDirective);
+        const content = children.content?.map((content: any) => {
+            return this.visit(content);
+        });
+
+        return new DirectiveEmptyBlockNode(emptyDirective, content ?? []);
     }
 
     elseIfBlock(children: ElseIfBlockCstChildren, param?: any): Node {
@@ -235,6 +276,30 @@ export class BladeToAstVisitor
             content ?? [],
             elseBlock,
             elseIfBlocks ?? []
+        );
+    }
+
+    forElseDirectiveBlock(
+        children: ForElseDirectiveBlockCstChildren,
+        param?: any
+    ): Node {
+        const openDirective = this.visit(children.startDirective);
+        const closeDirective = this.visit(children.endDirective);
+        const emptyBlock =
+            children.emptyBlock === undefined
+                ? null
+                : this.visit(children.emptyBlock);
+
+        // The content of the first if statement
+        const content = children.content?.map((content: any) => {
+            return this.visit(content);
+        });
+
+        return new DirectiveForElseBlockNode(
+            openDirective,
+            closeDirective,
+            content ?? [],
+            emptyBlock
         );
     }
 
