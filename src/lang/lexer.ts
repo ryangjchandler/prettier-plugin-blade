@@ -33,7 +33,6 @@ export const terminalDirectives = [
     "auth",
     "can",
     "component",
-    "empty",
     "error",
     "for",
     "foreach",
@@ -43,7 +42,6 @@ export const terminalDirectives = [
     "prepend",
     "push",
     "pushOnce",
-    "unless",
     "while",
 ];
 
@@ -262,12 +260,18 @@ export const StartIfDirectiveWithArgs = createToken({
                 return null;
             }
 
-            // Check if `@if` directive
-            if (result.directiveName !== "if") {
-                return null;
+            // Check if `@if`, `@unless` or `@empty` (w/ args) directive
+            if (
+                result.directiveName === "if" ||
+                result.directiveName === "unless" ||
+                (result.directiveName === "empty" &&
+                    result.matches.includes("("))
+            ) {
+                return [result.matches];
             }
 
-            return [result.matches];
+            // no match
+            return null;
         },
     },
     start_chars_hint: ["@"],
@@ -337,12 +341,17 @@ export const EndIfDirectiveWithArgs = createToken({
                 return null;
             }
 
-            // Check if `@if` directive
-            if (result.directiveName !== "endif") {
-                return null;
+            // Check if `@endif`, `@endunless`, `@endempty` directive
+            if (
+                result.directiveName === "endif" ||
+                result.directiveName === "endunless" ||
+                result.directiveName === "endempty"
+            ) {
+                return [result.matches];
             }
 
-            return [result.matches];
+            // no match
+            return null;
         },
     },
     start_chars_hint: ["@"],
@@ -387,15 +396,15 @@ export const EmptyDirectiveWithoutArgs = createToken({
                 return null;
             }
 
-            // Check if `@empty` directive
+            // Check if `@empty` directive w/o args
             if (
-                result.directiveName !== "empty" ||
-                result.matches.includes("(")
+                result.directiveName === "empty" &&
+                !result.matches.includes("(")
             ) {
-                return null;
+                return [result.matches];
             }
 
-            return [result.matches];
+            return null;
         },
     },
     start_chars_hint: ["@"],
