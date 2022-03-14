@@ -108,10 +108,25 @@ export class DirectiveNode implements Node {
     }
 
     toHtml(): HtmlOutput {
-        return {
-            asHtml: `<directive-${this.directive}-${nextId()} />`,
-            asReplacer: this.toString(),
-        };
+        let id = nextId();
+        let asHtml = `<directive-${this.directive}-${id} />`;
+        let asReplacer = this.toString();
+
+        // checked/selected/disabled are "attribute" directives, so we have use
+        // a placeholder string instead of a placeholder element
+        // FIXME this is bare-minimum support
+        if (
+            ["checked", "selected", "disabled"].includes(
+                this.directive.toLowerCase()
+            )
+        ) {
+            asHtml = placeholderString(
+                `directive_${this.directive}`,
+                asReplacer
+            );
+        }
+
+        return { asHtml, asReplacer };
     }
 }
 
