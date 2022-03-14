@@ -392,7 +392,7 @@ export class DirectiveElseIfBlockNode implements Node {
                     replace: this.elseIfDirective.toString(),
                 },
                 {
-                    search: `\n</else-if-${id}>`,
+                    search: new RegExp(`\n?.*<\\/else-if-${id}>`),
                     replace: "",
                 },
             ],
