@@ -30,14 +30,11 @@ enum Mode {
 }
 
 export const terminalDirectives = [
-    "auth",
     "can",
     "component",
     "error",
     "for",
     "foreach",
-    "guest",
-    "isset",
     "once",
     "prepend",
     "push",
@@ -261,10 +258,18 @@ export const StartIfDirectiveWithArgs = createToken({
                 return null;
             }
 
-            // Check if `@if`, `@unless` or `@empty` (w/ args) directive
             if (
-                result.directiveName === "if" ||
-                result.directiveName === "unless" ||
+                [
+                    "if",
+                    "unless",
+                    "auth",
+                    "guest",
+                    "env",
+                    "production",
+                    "hasSection",
+                    "sectionMissing",
+                    "isset",
+                ].includes(result.directiveName) ||
                 (result.directiveName === "empty" &&
                     result.matches.includes("("))
             ) {
@@ -292,12 +297,15 @@ export const ElseIfDirectiveWithArgs = createToken({
                 return null;
             }
 
-            // Check if `@if` directive
-            if (result.directiveName !== "elseif") {
-                return null;
+            if (
+                ["elseif", "elseauth", "elseguest"].includes(
+                    result.directiveName
+                )
+            ) {
+                return [result.matches];
             }
 
-            return [result.matches];
+            return null;
         },
     },
     start_chars_hint: ["@"],
@@ -317,7 +325,7 @@ export const ElseDirectiveWithArgs = createToken({
                 return null;
             }
 
-            // Check if `@if` directive
+            // Check if `@else` directive
             if (result.directiveName !== "else") {
                 return null;
             }
@@ -342,11 +350,17 @@ export const EndIfDirectiveWithArgs = createToken({
                 return null;
             }
 
-            // Check if `@endif`, `@endunless`, `@endempty` directive
             if (
-                result.directiveName === "endif" ||
-                result.directiveName === "endunless" ||
-                result.directiveName === "endempty"
+                [
+                    "endif",
+                    "endunless",
+                    "endauth",
+                    "endguest",
+                    "endenv",
+                    "endproduction",
+                    "endisset",
+                    "endempty",
+                ].includes(result.directiveName)
             ) {
                 return [result.matches];
             }
