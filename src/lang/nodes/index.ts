@@ -108,10 +108,25 @@ export class DirectiveNode implements Node {
     }
 
     toHtml(): HtmlOutput {
-        return {
-            asHtml: `<directive-${this.directive}-${nextId()} />`,
-            asReplacer: this.toString(),
-        };
+        let id = nextId();
+        let asHtml = `<directive-${this.directive}-${id} />`;
+        let asReplacer = this.toString();
+
+        // checked/selected/disabled are "attribute" directives, so we have use
+        // a placeholder string instead of a placeholder element
+        // FIXME this is bare-minimum support
+        if (
+            ["checked", "selected", "disabled"].includes(
+                this.directive.toLowerCase()
+            )
+        ) {
+            asHtml = placeholderString(
+                `directive_${this.directive}`,
+                asReplacer
+            );
+        }
+
+        return { asHtml, asReplacer };
     }
 }
 
@@ -263,7 +278,7 @@ export class DirectiveIfBlockNode implements Node {
                     replace: this.open.toString(),
                 },
                 {
-                    search: new RegExp(`\n?.*<\\/if-open-${uuid}>`),
+                    search: new RegExp(`\n?\\s*<\\/if-open-${uuid}>`),
                     replace: "",
                 },
                 {
@@ -301,7 +316,7 @@ export class DirectiveForElseBlockNode implements Node {
                     replace: this.open.toString(),
                 },
                 {
-                    search: new RegExp(`\n?.*<\\/forelse-open-${id}>`),
+                    search: new RegExp(`\n?\\s*<\\/forelse-open-${id}>`),
                     replace: "",
                 },
                 {
@@ -332,7 +347,7 @@ export class DirectiveElseBlockNode implements Node {
                     replace: this.elseDirective.toString(),
                 },
                 {
-                    search: new RegExp(`\n?.*<\\/else-${id}>`),
+                    search: new RegExp(`\n?\\s*<\\/else-${id}>`),
                     replace: "",
                 },
             ],
@@ -362,7 +377,7 @@ export class DirectiveEmptyBlockNode implements Node {
                     replace: this.emptyDirective.toString(),
                 },
                 {
-                    search: new RegExp(`\n?.*<\\/empty-${id}>`),
+                    search: new RegExp(`\n?\\s*<\\/empty-${id}>`),
                     replace: "",
                 },
             ],
@@ -392,7 +407,7 @@ export class DirectiveElseIfBlockNode implements Node {
                     replace: this.elseIfDirective.toString(),
                 },
                 {
-                    search: `\n</else-if-${id}>`,
+                    search: new RegExp(`\n?\\s*<\\/else-if-${id}>`),
                     replace: "",
                 },
             ],

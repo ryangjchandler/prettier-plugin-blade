@@ -30,14 +30,11 @@ enum Mode {
 }
 
 export const terminalDirectives = [
-    "auth",
     "can",
     "component",
     "error",
     "for",
     "foreach",
-    "guest",
-    "isset",
     "once",
     "prepend",
     "push",
@@ -62,29 +59,30 @@ function matchDirective(text: string, startOffset: number) {
         return null;
     }
 
-    endOffset++;
-    charCode = text.charAt(endOffset);
+    charCode = text.charAt(++endOffset);
     let directiveName = "";
     // Consume name of directive
     while (/\w/.exec(charCode)) {
-        endOffset++;
         directiveName += charCode;
-        charCode = text.charAt(endOffset);
+        charCode = text.charAt(++endOffset);
     }
 
     // Consume spaces
     let possibleEndOffset = endOffset;
     charCode = text.charAt(possibleEndOffset);
-    while ([" "].includes(charCode)) {
-        possibleEndOffset++;
-        charCode = text.charAt(possibleEndOffset);
+    while (charCode == " ") {
+        charCode = text.charAt(++possibleEndOffset);
     }
 
     charCode = text.charAt(possibleEndOffset);
 
-    // If the next char is `=`, then this might be a Vue or Alpine-style event
-    // binding. Regardless, it's not a directive!
-    if (charCode == "=") {
+    // If a directive appears to end w/ any of these chars, then it may not be a
+    // directive and is probably a Vue/Alpine event binding.
+    if (["=", ".", ":"].includes(charCode)) {
+        // FIXME it's *possible* that the input could be something like
+        // `@auth = @else != @endauth`, and `@event = "method"` is valid HTML,
+        // so perhaps we should look even further a head to confirm that the
+        // *next* char is not a `"` or `'`. ??
         return null;
     }
 
@@ -260,10 +258,18 @@ export const StartIfDirectiveWithArgs = createToken({
                 return null;
             }
 
-            // Check if `@if`, `@unless` or `@empty` (w/ args) directive
             if (
-                result.directiveName === "if" ||
-                result.directiveName === "unless" ||
+                [
+                    "if",
+                    "unless",
+                    "auth",
+                    "guest",
+                    "env",
+                    "production",
+                    "hasSection",
+                    "sectionMissing",
+                    "isset",
+                ].includes(result.directiveName) ||
                 (result.directiveName === "empty" &&
                     result.matches.includes("("))
             ) {
@@ -291,12 +297,15 @@ export const ElseIfDirectiveWithArgs = createToken({
                 return null;
             }
 
-            // Check if `@if` directive
-            if (result.directiveName !== "elseif") {
-                return null;
+            if (
+                ["elseif", "elseauth", "elseguest"].includes(
+                    result.directiveName
+                )
+            ) {
+                return [result.matches];
             }
 
-            return [result.matches];
+            return null;
         },
     },
     start_chars_hint: ["@"],
@@ -316,7 +325,7 @@ export const ElseDirectiveWithArgs = createToken({
                 return null;
             }
 
-            // Check if `@if` directive
+            // Check if `@else` directive
             if (result.directiveName !== "else") {
                 return null;
             }
@@ -341,11 +350,17 @@ export const EndIfDirectiveWithArgs = createToken({
                 return null;
             }
 
-            // Check if `@endif`, `@endunless`, `@endempty` directive
             if (
-                result.directiveName === "endif" ||
-                result.directiveName === "endunless" ||
-                result.directiveName === "endempty"
+                [
+                    "endif",
+                    "endunless",
+                    "endauth",
+                    "endguest",
+                    "endenv",
+                    "endproduction",
+                    "endisset",
+                    "endempty",
+                ].includes(result.directiveName)
             ) {
                 return [result.matches];
             }
