@@ -58,7 +58,26 @@ export class EchoNode implements Node {
         private type: EchoType
     ) {}
 
+    private _formattedCode: string = "";
+
+    get formattedCode(): string {
+        if (this._formattedCode === "" && this.code !== "") {
+            this._formattedCode = formatAsPhp(this.code);
+        }
+        return this._formattedCode;
+    }
+
     toHtml(): HtmlOutput {
+        if (this.formattedCode.match(/\n/)) {
+            // If the PHP is formatted onto multiple lines, pack it back on to a
+            // single line. First, put object access lines back together w/o any
+            // space between, then put anything else together w/ a single space.
+            // @ts-ignore
+            this._formattedCode = this.formattedCode
+                .replace(/\n\s+->/g, "->")
+                .replace(/\n\s+/g, " ");
+        }
+
         return {
             asHtml: placeholderString("e", this.toString()),
             asReplacer: this.toString(),
@@ -68,7 +87,7 @@ export class EchoNode implements Node {
     toString(): string {
         const [open, close] = EchoType.toStringParts(this.type);
 
-        return `${open} ${formatAsPhp(this.code)} ${close}`;
+        return `${open} ${this.formattedCode} ${close}`;
     }
 }
 
@@ -239,7 +258,7 @@ export class CommentNode implements Node {
     constructor(private code: string, private content: string) {}
 
     toString(): string {
-        return `{{-- ${this.content.trim()} --}}`;
+        return this.code;
     }
 
     toHtml(): HtmlOutput {

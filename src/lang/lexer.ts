@@ -145,34 +145,179 @@ function matchDirective(text: string, startOffset: number) {
     };
 }
 
+/**
+ * Match text that starts w/ a particular token and ends w/ a particular token.
+ * Though mostly used for matching echo and comment braces, it is able to match
+ * any starting/ending token pair.
+ *
+ * @param  text           the entire text document
+ * @param  startOffset    offset w/i the document to start looking
+ * @param  startToken     the starting token to look for
+ * @param  endToken       the ending token to look for
+ * @param  falsePositives (optional) an array of strings that *must mot* follow
+ *                        the start token
+ * @return null|object    null if nothing matched; an object w/ metadata if a
+ *                        match is found
+ */
+function matchBraces(
+    text: string,
+    startOffset: number,
+    startToken: string,
+    endToken: string,
+    falsePositives: Array<string> = []
+) {
+    let endOffset = startOffset;
+
+    // Confirm we match the start token
+    let charCode = text.charAt(endOffset);
+    for (let i = 0; i < startToken.length; i++) {
+        if (charCode !== startToken[i]) {
+            return null;
+        }
+        charCode = text.charAt(++endOffset);
+    }
+
+    // eliminate any false positives
+    for (let falsePositive of falsePositives) {
+        if (
+            text.substring(endOffset, endOffset + falsePositive.length) ===
+            falsePositive
+        ) {
+            return null;
+        }
+    }
+
+    lookingForEndToken: while (endOffset < text.length) {
+        // consume everything until the endToken starts
+        while (charCode !== endToken[0] && endOffset < text.length) {
+            charCode = text.charAt(++endOffset);
+        }
+
+        for (let i = 0; i < endToken.length; i++) {
+            // if we don't match the endToken all the way, start over
+            if (charCode !== endToken[i]) {
+                continue lookingForEndToken;
+            }
+            charCode = text.charAt(++endOffset);
+        }
+
+        // if we've gotten this far, then we've seen the whole endToken
+        break;
+    }
+
+    const content = text.substring(startOffset, endOffset);
+
+    // If content is only start token, then ignore
+    if (content === startToken || !content.endsWith(endToken)) {
+        return null;
+    }
+
+    return {
+        matches: text.substring(startOffset, endOffset),
+        startOffset,
+        endOffset,
+    };
+}
+
 export const Echo = createToken({
     name: Token.Echo,
-    pattern: /{{\s*(.+?)\s*}}/,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            const result = matchBraces(text, startOffset, "{{", "}}");
+
+            if (result === null) {
+                return null;
+            }
+
+            return [result.matches];
+        },
+    },
     start_chars_hint: ["{"],
+    line_breaks: true,
 });
 
 export const RawEcho = createToken({
     name: Token.RawEcho,
-    pattern: /{!!\s*(.+?)\s*!!}/,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            const result = matchBraces(text, startOffset, "{!!", "!!}");
+
+            if (result === null) {
+                return null;
+            }
+
+            return [result.matches];
+        },
+    },
     start_chars_hint: ["{"],
+    line_breaks: true,
 });
 
 export const Comment = createToken({
     name: Token.Comment,
-    pattern: /{{--(.*?)--}}/,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            const result = matchBraces(text, startOffset, "{{--", "--}}");
+
+            if (result === null) {
+                return null;
+            }
+
+            return [result.matches];
+        },
+    },
     start_chars_hint: ["{"],
+    line_breaks: true,
 });
 
 export const EscapedEcho = createToken({
     name: Token.EscapedEcho,
-    pattern: /@{{(?!--)\s*(.+?)\s*[^!]}}(\r?\n)?/,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            // be careful not to accidentally match `{{--` when looking at `@{{`
+            const result = matchBraces(text, startOffset, "@{{", "}}", ["--"]);
+
+            if (result === null) {
+                return null;
+            }
+
+            return [result.matches];
+        },
+    },
     start_chars_hint: ["@"],
+    line_breaks: true,
 });
 
 export const EscapedRawEcho = createToken({
     name: Token.EscapedRawEcho,
-    pattern: /@{!!\s*(.+?)\s*!!}(\r?\n)?/,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            const result = matchBraces(text, startOffset, "@{!!", "!!}");
+
+            if (result === null) {
+                return null;
+            }
+
+            return [result.matches];
+        },
+    },
     start_chars_hint: ["@"],
+    line_breaks: true,
 });
 
 export const DirectiveWithArgs = createToken({

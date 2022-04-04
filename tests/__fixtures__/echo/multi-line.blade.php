@@ -17,14 +17,6 @@
 
 <div>{{ $abc->def() }}</div>
 
-{{
-  fizz()
-      ->buzz()
-      ->fuzz()
-}}
+{{ fizz()->buzz()->fuzz() }}
 
-{{
-  abc()
-      ->def()
-      ->ghi()
-}}
+{{ abc()->def()->ghi() }}
