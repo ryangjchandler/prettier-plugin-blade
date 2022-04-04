@@ -145,11 +145,26 @@ function matchDirective(text: string, startOffset: number) {
     };
 }
 
+/**
+ * Match text that starts w/ a particular token and ends w/ a particular token.
+ * Though mostly used for matching echo and comment braces, it is able to match
+ * any starting/ending token pair.
+ *
+ * @param  text           the entire text document
+ * @param  startOffset    offset w/i the document to start looking
+ * @param  startToken     the starting token to look for
+ * @param  endToken       the ending token to look for
+ * @param  falsePositives (optional) an array of strings that *must mot* follow
+ *                        the start token
+ * @return null|object    null if nothing matched; an object w/ metadata if a
+ *                        match is found
+ */
 function matchBraces(
     text: string,
     startOffset: number,
     startToken: string,
-    endToken: string
+    endToken: string,
+    falsePositives: Array<string> = []
 ) {
     let endOffset = startOffset;
 
@@ -160,6 +175,16 @@ function matchBraces(
             return null;
         }
         charCode = text.charAt(++endOffset);
+    }
+
+    // eliminate any false positives
+    for (let falsePositive of falsePositives) {
+        if (
+            text.substring(endOffset, endOffset + falsePositive.length) ===
+            falsePositive
+        ) {
+            return null;
+        }
     }
 
     lookingForEndToken: while (endOffset < text.length) {
@@ -256,14 +281,43 @@ export const Comment = createToken({
 
 export const EscapedEcho = createToken({
     name: Token.EscapedEcho,
-    pattern: /@{{(?!--)\s*(.+?)\s*[^!]}}(\r?\n)?/,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            // be careful not to accidentally match `{{--` when looking at `@{{`
+            const result = matchBraces(text, startOffset, "@{{", "}}", ["--"]);
+
+            if (result === null) {
+                return null;
+            }
+
+            return [result.matches];
+        },
+    },
     start_chars_hint: ["@"],
+    line_breaks: true,
 });
 
 export const EscapedRawEcho = createToken({
     name: Token.EscapedRawEcho,
-    pattern: /@{!!\s*(.+?)\s*!!}(\r?\n)?/,
+    pattern: {
+        exec(
+            text: string,
+            startOffset: number
+        ): CustomPatternMatcherReturn | null {
+            const result = matchBraces(text, startOffset, "@{!!", "!!}");
+
+            if (result === null) {
+                return null;
+            }
+
+            return [result.matches];
+        },
+    },
     start_chars_hint: ["@"],
+    line_breaks: true,
 });
 
 export const DirectiveWithArgs = createToken({

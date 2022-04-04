@@ -13,3 +13,9 @@ test.each((0, utils_1.allFilesIn)((0, path_1.join)(__dirname, "/", "__fixtures__
         .map((part) => part.trimStart());
     expect((0, utils_1.format)(original)).toEqual(expected);
 });
+it("should test", function () {
+    const [original, expected] = (0, utils_1.readFile)((0, path_1.join)(__dirname, "/", "__fixtures__/components/component-directive.blade.php"))
+        .split("----")
+        .map((part) => part.trimStart());
+    expect((0, utils_1.format)(original)).toEqual(expected);
+});
